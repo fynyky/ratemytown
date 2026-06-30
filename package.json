@@ -9,12 +9,7 @@
     "dev": "node --watch src/server.js",
     "db:init": "node src/db/init.js",
     "db:seed": "node src/db/seed.js",
-    "db:reset": "node src/db/init.js && node src/db/seed.js",
-    "services:setup": "bash scripts/dev setup",
-    "services:start": "bash scripts/dev start",
-    "services:stop": "bash scripts/dev stop",
-    "services:status": "bash scripts/dev status",
-    "setup": "bash scripts/dev setup && npm run db:reset"
+    "db:reset": "node src/db/init.js && node src/db/seed.js"
   },
   "dependencies": {
     "connect-redis": "^7.1.1",

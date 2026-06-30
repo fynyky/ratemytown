@@ -13,42 +13,50 @@ No client-side framework.
 
 ## Quick start
 
-From a fresh clone (Node 18+ and a Debian/Ubuntu-like environment with `sudo`):
+### Recommended: the dev container
+
+Open the repo in the dev container (VS Code "Reopen in Container", or the
+devcontainer CLI). The backing services come up automatically as part of the
+container — nothing to install. After it builds:
 
 ```bash
-npm install
-cp .env.example .env
-npm run setup     # provision Postgres + Redis + MinIO, then create schema + seed
 npm start         # http://localhost:3000
 ```
 
-That's it. `npm run setup` installs any missing service binaries, creates the
-database role/database and the storage bucket, starts all three services, and
-loads seed data (19 town councils with reviews).
+The container's `postCreate` already ran `npm install` and `npm run db:reset`
+(creating the schema and seeding 19 town councils). Service connection settings
+are injected by Compose, so you don't even need a `.env`.
 
-> **In the dev container** this is automatic: the container's `postCreate` runs
-> `npm run setup` for you, and `postStart` restarts the services, so the app is
-> ready after the container builds.
+### Without the dev container
 
-## Local services
-
-All three run **natively** (no Docker required) and are managed by `scripts/dev`:
-
-| Service | Purpose | Address | Managed data |
-|---|---|---|---|
-| PostgreSQL | Relational data (town councils, residents, reviews) | `localhost:5432` | system cluster |
-| Redis | Sessions + leaderboard cache | `localhost:6379` | `.devdata/redis/` |
-| MinIO | S3-compatible blobstore for review photos | API `localhost:9000`, console `localhost:9001` | `.devdata/minio/` |
-
-`.devdata/` is gitignored. The MinIO console (login `ratemytown` /
-`ratemytown-dev-secret`) is handy for browsing uploaded photos.
+The same Compose stack can be run on its own; the app then talks to the
+services on `localhost`:
 
 ```bash
-npm run services:setup    # install + provision + start (idempotent)
-npm run services:start    # start anything not running
-npm run services:status   # show what's up
-npm run services:stop     # stop Redis + MinIO
+docker compose -f .devcontainer/docker-compose.yml up -d   # postgres, redis, minio
+npm install
+cp .env.example .env
+npm run db:reset
+npm start
 ```
+
+## Backing services
+
+Defined declaratively in [`.devcontainer/docker-compose.yml`](.devcontainer/docker-compose.yml)
+as sibling containers from official images (no binaries installed into the
+workspace). In the dev container the app reaches them by service name; on bare
+metal, by `localhost`.
+
+| Service | Image | Purpose | Address (host) |
+|---|---|---|---|
+| PostgreSQL | `postgres:17` | Relational data | `localhost:5432` |
+| Redis | `redis:7-alpine` | Sessions + leaderboard cache | `localhost:6379` |
+| MinIO | `minio/minio` | S3-compatible blobstore for review photos | API `:9000`, console `:9001` |
+
+Data persists in named Docker volumes (`pgdata`, `redisdata`, `miniodata`). The
+MinIO console (login `ratemytown` / `ratemytown-dev-secret`) is handy for
+browsing uploaded photos. Manage the stack with the usual Compose commands
+(`up -d`, `down`, `ps`, `logs`).
 
 ## Screens
 
@@ -76,7 +84,8 @@ npm run services:stop     # stop Redis + MinIO
 - **`src/identity.js`** — NRIC hashing (see privacy note below).
 - **`public/`** — `styles.css` (adapted from the mock) and `app.js` (star-input
   and file-input enhancements).
-- **`scripts/dev`** — provisions and runs the local services.
+- **`.devcontainer/`** — `docker-compose.yml` (the backing services) and
+  `devcontainer.json`.
 
 ### How the services are used
 
@@ -127,10 +136,10 @@ placeholder secret.
 
 | Script | Does |
 |---|---|
-| `npm run setup` | provision services + `db:reset` (one-shot first-run) |
 | `npm start` / `npm run dev` | run the server (`dev` watches for changes) |
 | `npm run db:init` / `db:seed` / `db:reset` | schema / seed / both |
-| `npm run services:{setup,start,stop,status}` | manage the local services |
+
+The backing services are managed with Docker Compose (see above), not npm.
 
 ## Scope
 

@@ -1,6 +1,8 @@
 {
   "name": "Dev",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/ratemytown",
   "forwardPorts": [3000, 9001],
   "portsAttributes": {
     "3000": {
@@ -12,8 +14,7 @@
       "onAutoForward": "silent"
     }
   },
-  "postCreateCommand": "npm install && npm install -g @anthropic-ai/claude-code && cp -n .env.example .env && bash scripts/dev setup && npm run db:reset",
-  "postStartCommand": "bash scripts/dev start",
+  "postCreateCommand": "npm install && npm install -g @anthropic-ai/claude-code && npm run db:reset",
   "customizations": {
     "vscode": {
       "extensions": [
