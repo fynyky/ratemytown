@@ -3,18 +3,30 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspaces/ratemytown",
-  "forwardPorts": [3000, 9001],
+  "forwardPorts": [3000, 5432, 6379, 9000, 9001],
   "portsAttributes": {
     "3000": {
       "label": "App",
       "onAutoForward": "openPreview"
+    },
+    "5432": {
+      "label": "Postgres",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis",
+      "onAutoForward": "silent"
+    },
+    "9000": {
+      "label": "MinIO S3 API",
+      "onAutoForward": "silent"
     },
     "9001": {
       "label": "MinIO console",
       "onAutoForward": "silent"
     }
   },
-  "postCreateCommand": "npm install && npm install -g @anthropic-ai/claude-code && npm run db:reset",
+  "postCreateCommand": "npm install && npm install -g @anthropic-ai/claude-code",
   "customizations": {
     "vscode": {
       "extensions": [
