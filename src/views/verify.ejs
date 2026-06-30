@@ -1,0 +1,64 @@
+<% title = 'Verify with Singpass — RateMyTown.sg' %>
+<%- include('partials/top', { title }) %>
+
+<div class="appbar">
+  <a class="iconbtn back" href="/rate?tc=<%= data.tc %>" aria-label="Back">‹</a>
+  <div class="bartitle">Rate your town</div>
+  <div style="width:34px"></div>
+</div>
+
+<div class="sheetwrap">
+  <div class="sheet">
+    <div class="sheettit">One last step — let's confirm you live here</div>
+    <div class="sheetsub">Your review of <b><%= tc.name %></b> is ready. Before it goes live, we verify your residency with Singpass. Here's why it matters:</div>
+
+    <div class="summchips">
+      <span class="summchip">Overall <%= data.overall %>★</span>
+      <% CATEGORIES.forEach(function(c){ %>
+        <span class="summchip"><%= c.short %> <%= data.cats[c.key] %>★</span>
+      <% }) %>
+    </div>
+
+    <div class="whyrow">
+      <div class="whyic">✓</div>
+      <div>
+        <div class="whytit">It keeps reviews real</div>
+        <div class="whytxt">Only people who actually live in the estate can post — so scores stay trustworthy and can't be gamed.</div>
+      </div>
+    </div>
+    <div class="whyrow">
+      <div class="whyic">✓</div>
+      <div>
+        <div class="whytit">Your review stays anonymous</div>
+        <div class="whytxt">We confirm you live here only at the moment you post. Your identity is never attached to your review or stored afterwards.</div>
+      </div>
+    </div>
+    <div class="whyrow">
+      <div class="whyic">✓</div>
+      <div>
+        <div class="whytit">One resident, one voice</div>
+        <div class="whytxt">Verification means no duplicate or fake reviews stacking the deck either way.</div>
+      </div>
+    </div>
+
+    <% if (error) { %><div class="errors" style="margin:10px 0"><%= error %></div><% } %>
+
+    <form method="post" action="/rate/submit">
+      <input type="hidden" name="tc" value="<%= data.tc %>">
+      <input type="hidden" name="overall" value="<%= data.overall %>">
+      <% CATEGORIES.forEach(function(c){ %>
+        <input type="hidden" name="<%= c.key %>" value="<%= data.cats[c.key] %>">
+      <% }) %>
+      <input type="hidden" name="good_text" value="<%= data.goodText %>">
+      <input type="hidden" name="bad_text" value="<%= data.badText %>">
+
+      <div class="nriclabel">Demo only — enter any valid NRIC/FIN to simulate Singpass (e.g. S1234567A)</div>
+      <input class="nricinput" name="nric" placeholder="S1234567A" autocomplete="off" value="<%= typeof nricValue !== 'undefined' ? nricValue : '' %>">
+
+      <button type="submit" class="spbtn"><span class="spd"></span> Verify with Singpass</button>
+    </form>
+    <div class="sheetnote">We never store your NRIC. It is hashed with a server-side secret the moment you verify, and only the hash is kept.</div>
+  </div>
+</div>
+
+<%- include('partials/bottom') %>

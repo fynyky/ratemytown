@@ -1,80 +1,77 @@
-# AI Automated Template
+# RateMyTown.sg
 
-This is a blank starter project with basic AI tooling setup. Clone this repo and follow the instructions to get started with AI-enabled development. This includes:
-- Using autonomous agents safely through sandbox environments
-- Running multiple agents simultaneously
-- Automatically triggering agents to handle tasks
-- Assistance in reviewing changes
-- Periodic testing and codebase maintenance
+TripAdvisor for Singapore town councils — a platform where Singpass-verified
+residents leave honest, structured reviews of their town council's service,
+cleanliness, maintenance, pest control, and estate environment. Scores are
+published publicly to close the feedback loop and create accountability.
 
-The goal is to close the loop with AI as much as possible to speed development, while still allowing human intervention to steer when needed.
+This is a server-side-rendered implementation of the
+[design mock](https://claude.ai/design/p/d528842e-0995-46c1-bd10-ae157d36f2be)
+built on a deliberately simple stack: **Express + EJS + PostgreSQL**, no
+client-side framework.
 
-This template is intentionally generic. It provides the wiring to get started, but as your project develops you'll want to customize it for your specific needs.
+## Screens
 
----
+| Route | Screen |
+|---|---|
+| `/` | Leaderboard — town councils ranked by overall score, sortable by category |
+| `/town/:slug` | Town page — score breakdown, per-category ranks, AI-style summary, resident reviews |
+| `/rate` | Review form — overall + per-category star ratings, optional free text |
+| `/rate/verify` → `/rate/submit` | Mock Singpass residency verification, then publish |
+| `/guide` | Rating guide — what each star and category means |
+| `/about` | Why the platform exists |
 
-# Strategy
+## Architecture
 
-The core idea is to use GitHub as a coordination backbone. Instead of a single super-agent, smaller agents pick up and drop off work on a repo, just like a team of people would. This makes the automation easy to reason about, provides visibility into operation, and provides clear intervention points for customization or manual steering.
+- **`src/server.js`** — Express app and routes.
+- **`src/db/`** — `schema.sql`, connection `pool.js`, aggregation `queries.js`,
+  and `init.js` / `seed.js` scripts.
+- **`src/views/`** — EJS templates (server-side rendered).
+- **`src/categories.js`** — the five service categories and rating scale.
+- **`src/identity.js`** — NRIC hashing (see privacy note below).
+- **`public/`** — `styles.css` (adapted from the mock) and a small `app.js`
+  that enhances the star-rating inputs.
 
-The template is organized around five components:
+### Data model (PRD §9.1)
 
-## Execution Environments
-Isolated, sandboxed environments where AI agents can write and run code safely. Agents need unrestricted access to tools and the filesystem — isolation is what makes that safe.
+Three tables: `town_councils`, `residents`, `reviews`. A resident may submit
+**one review per town council** (enforced by a unique constraint); re-submitting
+updates the existing review.
 
-## Task Coordination
-GitHub issues and PRs are the interface between humans and agents. Issues define work; PRs deliver it. Every task has a clear paper trail and a natural review point.
+### Privacy by design (PRD §10)
 
-## Agent Triggers
-Three ways to invoke an agent:
-- **Manual** — a human kicks off an agent directly
-- **Event-driven** — a new issue automatically spawns an agent to handle it
-- **Scheduled** — periodic agents run on a timer (e.g. nightly test runs, maintenance)
+The raw NRIC is **never stored**. On verification it is hashed with a
+server-side secret salt (`NRIC_HASH_SALT`) and only the hash is persisted.
+Re-hashing on the next sign-in retrieves the same resident, which is how
+one-review-per-resident is enforced without keeping any identity at rest.
 
-## Quality Gates
-Automated checkpoints before work lands: PR review, test runs, and merge criteria. Agents should not be able to merge their own work without passing these gates.
+> The Singpass step here is **mocked** — entering any syntactically valid
+> NRIC/FIN simulates verification. A production integration would use
+> Singpass/Myinfo, which also returns the registered address (and therefore the
+> town council) directly.
 
-## Project Context
-How agents understand the project they're working on — conventions, architecture decisions, coding standards. Without shared context, every agent starts cold and makes inconsistent choices. This is the most project-specific component and the one you'll customize most as your project grows.
+## Getting started
 
-## Something about automatic issue creation to close the loop
+Requires Node 18+ and a running PostgreSQL.
 
-TODO: Describe the overall loop operation
+```bash
+npm install
+cp .env.example .env          # adjust DATABASE_URL / NRIC_HASH_SALT
+npm run db:reset              # create schema + seed 19 town councils with reviews
+npm start                     # http://localhost:3000
+```
 
+Scripts:
 
----
+- `npm start` — run the server
+- `npm run dev` — run with `--watch` auto-reload
+- `npm run db:init` — (re)create the schema (drops existing tables)
+- `npm run db:seed` — load seed data
+- `npm run db:reset` — init + seed
 
-# How it works
+## Notes & scope
 
-The template ships with the following files and configurations:
-
-## GitHub Actions Workflows
-- **`agent-dispatch.yml`** — triggered manually via `workflow_dispatch`. Takes an issue number as input, spins up a Codespace, and runs Claude Code against it.
-- **`agent-trigger.yml`** — triggered when an issue is labeled `agent`. Automatically spins up a Codespace and runs Claude Code against the labeled issue.
-- **`scheduled-tasks.yml`** — runs on a cron schedule. Invokes Claude Code to check for test failures, stale issues, or other maintenance tasks and files issues for anything it finds.
-- **`pr-review.yml`** — triggered on PR open. Runs Claude Code to review the diff and posts findings as PR comments.
-- **`auto-merge.yml`** — triggered when a PR is approved. Auto-merges if all CI checks pass and the PR is labeled `auto-merge`.
-
-## Codespace Configuration
-A `.devcontainer/` config that pre-installs Claude Code and the GitHub CLI so agents have everything they need when the environment starts.
-
-## CLAUDE.md
-A root-level `CLAUDE.md` that gives agents their baseline instructions — things like branch naming, PR workflow, and how to interact with GitHub. This is the file you'll edit most as your project evolves.
-
-## Branch Protection
-A GitHub branch protection configuration requiring CI to pass and at least one approval before any PR can merge to `main`.
-
----
-
-# Setup
----
-
-# Human-in-the-loop
-
-Automation handles routine work; humans steer and override. The template is designed with explicit points where human input is expected:
-
-- **Issue creation** — humans (or external systems) define what needs to be done
-- **PR review** — non-trivial changes require human approval before merging
-- **Context maintenance** — humans keep the project context accurate, which guides all agent behavior
-
-The goal is not to remove humans from the process, but to reserve human attention for decisions that actually need it.
+This implements the mocked screens. Out of scope for this build (called out in
+the PRD as later phases): real Singpass/Myinfo, photo uploads, town-council
+response accounts, anomaly/coordination detection, and LLM-generated summaries
+(the per-town summary is currently seeded copy).

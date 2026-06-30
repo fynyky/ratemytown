@@ -1,0 +1,73 @@
+<% title = 'RateMyTown.sg — Town council leaderboard' %>
+<%- include('partials/top', { title }) %>
+
+<div class="appbar home">
+  <div class="brandrow">
+    <div class="brandmark">★</div>
+    <div>
+      <div class="wordmark">RateMyTown<span class="sg">.sg</span></div>
+      <div class="appsub">Good feedback makes better towns</div>
+    </div>
+  </div>
+  <a class="aboutpill" href="/about">About</a>
+</div>
+
+<%
+  const sortChips = [
+    ['overall', 'Overall'],
+    ['service', 'Service'],
+    ['cleanliness', 'Cleanliness'],
+    ['maintenance', 'Maintenance'],
+    ['pest_control', 'Pest control'],
+    ['environment', 'Estate environment'],
+  ];
+%>
+<div class="chiprow">
+  <% sortChips.forEach(function(c){ %>
+    <a class="chip<%= sort === c[0] ? ' on' : '' %>" href="/?sort=<%= c[0] %>"><%= c[1] %></a>
+  <% }) %>
+</div>
+
+<div class="scroll" style="padding-top:4px">
+  <div class="lblead">Town councils ranked by verified resident reviews. Tap any town to see its full breakdown.</div>
+
+  <% leaderboard.forEach(function(r){ %>
+    <% if (r.suppressed) { %>
+      <a class="lbrow flat suppressed" href="/town/<%= r.slug %>">
+        <div class="tcnamed"><%= r.name %></div>
+        <div class="norating">Not enough verified reviews yet · <%= r.review_count %> so far</div>
+      </a>
+    <% } else { %>
+      <a class="lbrow" href="/town/<%= r.slug %>">
+        <div class="tilephoto" style="background:<%= r.tile_gradient %>"></div>
+        <div class="tilefade"></div>
+        <div class="tilebody">
+          <div class="lbarea"><%= r.area %></div>
+          <div class="lbtop">
+            <div class="tcname"><%= r.name %></div>
+            <div class="ovr">
+              <span class="ovrnum"><%= h.fmtScore(r.overall) %></span>
+              <%- include('partials/stars', { score: r.overall, size: 13 }) %>
+            </div>
+          </div>
+          <div class="subsbar">
+            <div class="subs">
+              <% CATEGORIES.forEach(function(c){ %>
+                <div class="sub<%= sort === c.key ? ' on' : '' %>">
+                  <div class="sublab"><%= c.short %></div>
+                  <div class="subv"><%= h.fmtScore(r.scores[c.key]) %></div>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+      </a>
+    <% } %>
+  <% }) %>
+</div>
+
+<div class="ctabar">
+  <a class="ctabtn" href="/rate"><span>★</span> Rate your town</a>
+</div>
+
+<%- include('partials/bottom') %>

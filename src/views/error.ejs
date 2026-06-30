@@ -1,0 +1,8 @@
+<% title = 'Something went wrong — RateMyTown.sg' %>
+<%- include('partials/top', { title }) %>
+<div class="success">
+  <div class="successtit">Something went wrong</div>
+  <div class="successsub"><%= message || 'An unexpected error occurred. Please try again.' %></div>
+  <div class="successbtns"><a class="btnf" href="/">Back to leaderboard</a></div>
+</div>
+<%- include('partials/bottom') %>
