@@ -97,7 +97,7 @@ app.get('/town/:slug', async (req, res, next) => {
 app.get('/rate', async (req, res, next) => {
   try {
     const townCouncils = await db.listTownCouncils();
-    const selected = req.query.tc || (townCouncils[0] && townCouncils[0].slug);
+    const selected = req.query.tc || '';
     res.render('rate', { townCouncils, selected, form: null, errors: [] });
   } catch (err) {
     next(err);

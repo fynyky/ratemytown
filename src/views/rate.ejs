@@ -19,11 +19,11 @@
     <% } %>
 
     <div class="field">
-      <span class="flab">Which town council?</span>
       <div class="selectbox">
         <div class="tcpick">
           <span class="pin"></span>
-          <select name="tc" aria-label="Town council">
+          <select name="tc" aria-label="Town council" required>
+            <option value="" disabled<%= selected ? '' : ' selected' %>>Choose your town</option>
             <% townCouncils.forEach(function(t){ %>
               <option value="<%= t.slug %>"<%= t.slug === selected ? ' selected' : '' %>><%= t.name %></option>
             <% }) %>
@@ -31,7 +31,6 @@
         </div>
         <span class="chev">▾</span>
       </div>
-      <div class="fhint">In the real app this is set automatically from your Singpass registered address.</div>
     </div>
 
     <div class="field">
@@ -60,16 +59,16 @@
 
     <div class="field">
       <span class="flab">Add photos <span class="opt">· optional</span></span>
-      <label class="photoinput">
-        <input type="file" name="photos" accept="image/*" multiple>
-        <span class="photoinput-cta">＋ Add up to 4 photos</span>
-        <span class="photoinput-files" data-photo-files>JPG, PNG, WebP or GIF · max 5MB each</span>
-      </label>
+      <div class="photogrid" data-photogrid>
+        <input type="file" name="photos" accept="image/*" multiple hidden data-photo-input>
+        <button type="button" class="phototile photoadd" data-photo-add aria-label="Add photo">＋</button>
+      </div>
+      <span class="photoinput-files" data-photo-files>JPG, PNG, WebP or GIF · max 5MB each · up to 4</span>
     </div>
 
     <div class="cardnote">
       <span class="lk"></span>
-      <span>Completely anonymous — we verify residency only when you post, and never store who you are.</span>
+      <span>Your review is anonymous. We verify residency when you submit the review but don't save your identity.</span>
     </div>
 
     <button type="submit" class="btnf" style="margin-top:18px">Submit review</button>
