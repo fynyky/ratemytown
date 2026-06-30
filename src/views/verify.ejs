@@ -12,13 +12,6 @@
     <div class="sheettit">One last step — let's confirm you live here</div>
     <div class="sheetsub">Your review of <b><%= tc.name %></b> is ready. Before it goes live, we verify your residency with Singpass. Here's why it matters:</div>
 
-    <div class="summchips">
-      <span class="summchip">Overall <%= data.overall %>★</span>
-      <% CATEGORIES.forEach(function(c){ %>
-        <span class="summchip"><%= c.short %> <%= data.cats[c.key] %>★</span>
-      <% }) %>
-    </div>
-
     <div class="whyrow">
       <div class="whyic">✓</div>
       <div>

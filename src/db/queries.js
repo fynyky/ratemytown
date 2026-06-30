@@ -25,7 +25,7 @@ export const SORT_KEYS = Object.keys(SORT_EXPR);
 export async function getLeaderboard(sort = 'overall') {
   const expr = SORT_EXPR[sort] || SORT_EXPR.overall;
   const { rows } = await query(
-    `SELECT tc.id, tc.slug, tc.name, tc.area, tc.tile_gradient, ${AVG_COLUMNS}
+    `SELECT tc.id, tc.slug, tc.name, tc.area, ${AVG_COLUMNS}
        FROM town_councils tc
        LEFT JOIN reviews r ON r.town_council_id = tc.id
       GROUP BY tc.id
@@ -57,7 +57,7 @@ export async function getCategoryRanks() {
 
 export async function getTownCouncilBySlug(slug) {
   const { rows } = await query(
-    `SELECT tc.id, tc.slug, tc.name, tc.area, tc.tile_gradient, tc.blurb, ${AVG_COLUMNS}
+    `SELECT tc.id, tc.slug, tc.name, tc.area, tc.blurb, ${AVG_COLUMNS}
        FROM town_councils tc
        LEFT JOIN reviews r ON r.town_council_id = tc.id
       WHERE tc.slug = $1

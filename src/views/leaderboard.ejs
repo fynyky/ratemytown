@@ -29,7 +29,6 @@
 </div>
 
 <div class="scroll" style="padding-top:4px">
-  <div class="lblead">Town councils ranked by verified resident reviews. Tap any town to see its full breakdown.</div>
 
   <% leaderboard.forEach(function(r){ %>
     <% if (r.suppressed) { %>
@@ -39,10 +38,9 @@
       </a>
     <% } else { %>
       <a class="lbrow" href="/town/<%= r.slug %>">
-        <div class="tilephoto" style="background:<%= r.tile_gradient %>"></div>
+        <div class="tilephoto" style="background-image:url(/towns/<%= r.slug %>.jpg)"></div>
         <div class="tilefade"></div>
         <div class="tilebody">
-          <div class="lbarea"><%= r.area %></div>
           <div class="lbtop">
             <div class="tcname"><%= r.name %></div>
             <div class="ovr">
