@@ -9,8 +9,11 @@ const SCALE_LABELS = [
 ];
 
 // Build a category's rating scale from five descriptions ordered 5★ → 1★.
-const buildScale = (descs) =>
-  SCALE_LABELS.map(([n, label], i) => ({ n, label, desc: descs[i] }));
+const buildScale = (descs) => {
+  if (descs.length !== SCALE_LABELS.length)
+    throw new Error(`buildScale expects ${SCALE_LABELS.length} descriptions, got ${descs.length}`);
+  return SCALE_LABELS.map(([n, label], i) => ({ n, label, desc: descs[i] }));
+};
 
 // Service categories, framed around what residents experience (PRD §9.1).
 // `key` is the DB column / form field; `label` matches the design mock.
