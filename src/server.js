@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { config } from './config.js';
-import { CATEGORIES, CATEGORY_KEYS, RATING_SCALE } from './categories.js';
+import { CATEGORIES, CATEGORY_KEYS } from './categories.js';
 import * as db from './db/queries.js';
 import { hashNric, isValidNric } from './identity.js';
 import * as h from './helpers.js';
@@ -35,7 +35,6 @@ app.use(express.static(join(__dirname, '..', 'public')));
 app.use(sessionMiddleware());
 
 app.locals.CATEGORIES = CATEGORIES;
-app.locals.RATING_SCALE = RATING_SCALE;
 app.locals.h = h;
 
 // --- Leaderboard / landing (mock 01) — cached in Redis ---------------------

@@ -15,7 +15,7 @@
     <div class="guidecat<%= focus === c.key ? ' focus' : '' %>"<% if (focus === c.key) { %> id="focus"<% } %>>
       <div class="scalelabel" style="font-size:15px"><%= c.label %></div>
       <div class="scaledesc" style="font-size:12.5px;margin:4px 0 10px"><%= c.desc %></div>
-      <% RATING_SCALE.forEach(function(s){ %>
+      <% c.scale.forEach(function(s){ %>
         <div class="scalerow">
           <span class="scalestars"><% for (var i=1;i<=5;i++){ %><span class="<%= i <= s.n ? 'on' : '' %>">★</span><% } %></span>
           <div>
