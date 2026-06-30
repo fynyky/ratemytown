@@ -1,32 +1,53 @@
 import express from 'express';
+import multer from 'multer';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import 'dotenv/config';
 
+import { config } from './config.js';
 import { CATEGORIES, CATEGORY_KEYS, RATING_SCALE } from './categories.js';
 import * as db from './db/queries.js';
 import { hashNric, isValidNric } from './identity.js';
 import * as h from './helpers.js';
+import { sessionMiddleware } from './session.js';
+import { connectRedis, cacheGet, cacheSet, invalidateLeaderboard } from './services/redis.js';
+import {
+  ensureBucket,
+  putImage,
+  isAllowedImage,
+  statObject,
+  getObjectStream,
+} from './services/storage.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+// Photo uploads buffered in memory, then streamed to the blobstore.
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024, files: 4 },
+  fileFilter: (req, file, cb) => cb(null, isAllowedImage(file.mimetype)),
+});
 
 app.set('view engine', 'ejs');
 app.set('views', join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(join(__dirname, '..', 'public')));
+app.use(sessionMiddleware());
 
-// Make helpers + config available to every template.
 app.locals.CATEGORIES = CATEGORIES;
 app.locals.RATING_SCALE = RATING_SCALE;
 app.locals.h = h;
 
-// --- Leaderboard / landing (mock 01) ---------------------------------------
+// --- Leaderboard / landing (mock 01) — cached in Redis ---------------------
 app.get('/', async (req, res, next) => {
   try {
     const sort = db.SORT_KEYS.includes(req.query.sort) ? req.query.sort : 'overall';
-    const leaderboard = await db.getLeaderboard(sort);
+    const cacheKey = `lb:${sort}`;
+    let leaderboard = await cacheGet(cacheKey);
+    if (!leaderboard) {
+      leaderboard = await db.getLeaderboard(sort);
+      await cacheSet(cacheKey, leaderboard, 30); // 30s TTL
+    }
     res.render('leaderboard', { leaderboard, sort });
   } catch (err) {
     next(err);
@@ -40,6 +61,22 @@ app.get('/about', (req, res) => res.render('about'));
 app.get('/guide', (req, res) => {
   const focus = CATEGORY_KEYS.includes(req.query.cat) ? req.query.cat : null;
   res.render('guide', { focus });
+});
+
+// --- Serve an uploaded photo from the blobstore ----------------------------
+app.get('/uploads/:dir/:file', async (req, res, next) => {
+  const key = `${req.params.dir}/${req.params.file}`;
+  if (!/^reviews\/[\w.-]+$/.test(key)) return res.status(400).end();
+  try {
+    const stat = await statObject(key);
+    res.setHeader('Content-Type', stat.metaData['content-type'] || 'application/octet-stream');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    const stream = await getObjectStream(key);
+    stream.on('error', () => res.status(404).end());
+    stream.pipe(res);
+  } catch {
+    res.status(404).end();
+  }
 });
 
 // --- Town council page (mock 06 / 06b) -------------------------------------
@@ -62,12 +99,7 @@ app.get('/rate', async (req, res, next) => {
   try {
     const townCouncils = await db.listTownCouncils();
     const selected = req.query.tc || (townCouncils[0] && townCouncils[0].slug);
-    res.render('rate', {
-      townCouncils,
-      selected,
-      form: null,
-      errors: [],
-    });
+    res.render('rate', { townCouncils, selected, form: null, errors: [] });
   } catch (err) {
     next(err);
   }
@@ -102,36 +134,9 @@ function clampStar(v) {
   return n >= 1 && n <= 5 ? n : 0;
 }
 
-// Step 1 -> 2: validate ratings, then show the Singpass verify sheet (mock 04).
-app.post('/rate/verify', async (req, res, next) => {
-  try {
-    const { errors, data } = parseReviewForm(req.body);
-    const townCouncils = await db.listTownCouncils();
-    if (errors.length) {
-      return res.status(400).render('rate', {
-        townCouncils,
-        selected: data.tc,
-        form: req.body,
-        errors,
-      });
-    }
-    const tc = townCouncils.find((t) => t.slug === data.tc);
-    if (!tc) {
-      return res.status(400).render('rate', {
-        townCouncils,
-        selected: data.tc,
-        form: req.body,
-        errors: ['That town council was not recognised.'],
-      });
-    }
-    res.render('verify', { data, tc, error: null });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// Step 2 -> 3: mock Singpass verification, then publish (mock 05).
-app.post('/rate/submit', async (req, res, next) => {
+// Step 1 -> 2: validate ratings, stash photos in the blobstore and the draft
+// in the session, then show the Singpass verify sheet (mock 04).
+app.post('/rate/verify', upload.array('photos', 4), async (req, res, next) => {
   try {
     const { errors, data } = parseReviewForm(req.body);
     const townCouncils = await db.listTownCouncils();
@@ -141,35 +146,67 @@ app.post('/rate/submit', async (req, res, next) => {
         townCouncils,
         selected: data.tc,
         form: req.body,
-        errors: errors.length ? errors : ['Something went wrong. Please try again.'],
+        errors: errors.length ? errors : ['That town council was not recognised.'],
       });
     }
 
+    // Upload any photos now that the ratings are valid.
+    const photoKeys = [];
+    for (const file of req.files || []) {
+      photoKeys.push(await putImage(file.buffer, file.mimetype));
+    }
+
+    // The draft lives in the Redis-backed session, not in hidden form fields.
+    req.session.reviewDraft = { ...data, photoKeys };
+    res.render('verify', { data: req.session.reviewDraft, tc, error: null });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Step 2 -> 3: mock Singpass verification, then publish (mock 05).
+app.post('/rate/submit', async (req, res, next) => {
+  try {
+    const draft = req.session.reviewDraft;
+    if (!draft) return res.redirect('/rate');
+
+    const townCouncils = await db.listTownCouncils();
+    const tc = townCouncils.find((t) => t.slug === draft.tc);
+    if (!tc) return res.redirect('/rate');
+
     // Mock Singpass/Myinfo: a real integration returns the verified identity and
     // registered address. Here we accept an NRIC and hash it (PRD §10) — we never
-    // store the raw value, and the registered TC would come from Myinfo.
+    // store the raw value.
     const nric = req.body.nric;
     if (!isValidNric(nric)) {
       return res.status(400).render('verify', {
-        data,
+        data: draft,
         tc,
         error: 'Please enter a valid NRIC/FIN (e.g. S1234567A) to simulate Singpass.',
+        nricValue: nric || '',
       });
     }
 
     const nricHash = hashNric(nric);
     const residentId = await db.findOrCreateResident(nricHash);
     const tcRow = await db.getTownCouncilById(tc.id);
-    const { isNew } = await db.upsertReview({
+    const { id: reviewId, isNew } = await db.upsertReview({
       townCouncilId: tcRow.id,
       residentId,
-      overall: data.overall,
-      cats: data.cats,
-      goodText: data.goodText,
-      badText: data.badText,
+      overall: draft.overall,
+      cats: draft.cats,
+      goodText: draft.goodText,
+      badText: draft.badText,
     });
 
-    res.render('success', { tc: tcRow, overall: data.overall, isNew });
+    if (draft.photoKeys && draft.photoKeys.length) {
+      await db.setReviewPhotos(reviewId, draft.photoKeys);
+    }
+
+    delete req.session.reviewDraft;
+    await invalidateLeaderboard(); // scores changed
+
+    res.render('success', { tc: tcRow, overall: draft.overall, isNew });
   } catch (err) {
     next(err);
   }
@@ -183,6 +220,16 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', { message: err.message });
 });
 
-app.listen(PORT, () => {
-  console.log(`RateMyTown.sg running on http://localhost:${PORT}`);
+// --- Boot: connect services, then listen -----------------------------------
+async function start() {
+  await connectRedis();
+  await ensureBucket();
+  app.listen(config.port, () => {
+    console.log(`RateMyTown.sg running on http://localhost:${config.port}`);
+  });
+}
+
+start().catch((err) => {
+  console.error('Failed to start:', err.message);
+  process.exit(1);
 });

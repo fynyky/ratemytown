@@ -78,7 +78,33 @@ export async function getRecentReviews(townCouncilId, limit = 8) {
       LIMIT $2`,
     [townCouncilId, limit]
   );
+  // Attach photo object keys for these reviews.
+  if (rows.length) {
+    const ids = rows.map((r) => r.id);
+    const { rows: photos } = await query(
+      `SELECT review_id, object_key FROM review_photos
+        WHERE review_id = ANY($1) ORDER BY id ASC`,
+      [ids]
+    );
+    const byReview = new Map();
+    for (const p of photos) {
+      if (!byReview.has(p.review_id)) byReview.set(p.review_id, []);
+      byReview.get(p.review_id).push(p.object_key);
+    }
+    for (const r of rows) r.photos = byReview.get(r.id) || [];
+  }
   return rows;
+}
+
+// Replace a review's photos with a new set of object keys.
+export async function setReviewPhotos(reviewId, keys) {
+  await query(`DELETE FROM review_photos WHERE review_id = $1`, [reviewId]);
+  for (const key of keys) {
+    await query(
+      `INSERT INTO review_photos (review_id, object_key) VALUES ($1, $2)`,
+      [reviewId, key]
+    );
+  }
 }
 
 export async function listTownCouncils() {
@@ -122,7 +148,7 @@ export async function upsertReview(review) {
        good_text = EXCLUDED.good_text,
        bad_text = EXCLUDED.bad_text,
        updated_at = now()
-     RETURNING (xmax = 0) AS inserted`,
+     RETURNING id, (xmax = 0) AS inserted`,
     [
       townCouncilId,
       residentId,
@@ -136,7 +162,7 @@ export async function upsertReview(review) {
       badText || null,
     ]
   );
-  return { isNew: rows[0].inserted };
+  return { id: rows[0].id, isNew: rows[0].inserted };
 }
 
 // Attach derived display fields (suppression flag, numeric scores).

@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
-import 'dotenv/config';
+import { config } from './config.js';
 
-const SALT = process.env.NRIC_HASH_SALT || 'dev-only-salt-change-me';
+const SALT = config.nricSalt;
 
 // Privacy by design (PRD §10): the raw NRIC is hashed with a server-side
 // secret salt and never persisted. The same NRIC always yields the same hash,

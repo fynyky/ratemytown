@@ -25,3 +25,17 @@ document.querySelectorAll('[data-starinput]').forEach(function (group) {
     paint(parseInt(input.value, 10) || 0);
   });
 });
+
+// Show selected file names on the photo upload control.
+document.querySelectorAll('.photoinput input[type="file"]').forEach(function (input) {
+  var out = input.closest('.photoinput').querySelector('[data-photo-files]');
+  if (!out) return;
+  var dflt = out.textContent;
+  input.addEventListener('change', function () {
+    var n = input.files.length;
+    if (!n) { out.textContent = dflt; return; }
+    out.textContent =
+      n + ' file' + (n > 1 ? 's' : '') + ' selected' +
+      (n > 4 ? ' — only the first 4 are kept' : '');
+  });
+});

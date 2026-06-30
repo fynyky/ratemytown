@@ -81,6 +81,9 @@
         </div>
         <% if (r.good_text) { %><div class="rvwb"><%= r.good_text %></div><% } %>
         <% if (r.bad_text) { %><div class="rvwb"><%= r.bad_text %></div><% } %>
+        <% if (r.photos && r.photos.length) { %>
+          <div class="rvwphotos"><% r.photos.forEach(function(k){ %><img class="rvwphoto" src="/uploads/<%= k %>" alt="Resident photo" loading="lazy"><% }) %></div>
+        <% } %>
         <% if (tags.length) { %>
           <div class="rvwtags"><% tags.forEach(function(t){ %><span class="rvwtag"><%= t %></span><% }) %></div>
         <% } %>

@@ -9,7 +9,7 @@
   <div style="width:34px"></div>
 </div>
 
-<form method="post" action="/rate/verify">
+<form method="post" action="/rate/verify" enctype="multipart/form-data">
   <div class="scroll" style="padding-top:8px">
 
     <% if (errors && errors.length) { %>
@@ -56,6 +56,15 @@
       <span class="flab">Tell us more <span class="opt">· optional</span></span>
       <textarea class="ta" name="good_text" style="margin-bottom:10px" placeholder="What's been good? e.g. “Void deck is always clean and lifts are reliable…”"><%= f.good_text || '' %></textarea>
       <textarea class="ta" name="bad_text" placeholder="What could be better? e.g. “Drainage by the carpark floods after heavy rain…”"><%= f.bad_text || '' %></textarea>
+    </div>
+
+    <div class="field">
+      <span class="flab">Add photos <span class="opt">· optional</span></span>
+      <label class="photoinput">
+        <input type="file" name="photos" accept="image/*" multiple>
+        <span class="photoinput-cta">＋ Add up to 4 photos</span>
+        <span class="photoinput-files" data-photo-files>JPG, PNG, WebP or GIF · max 5MB each</span>
+      </label>
     </div>
 
     <div class="cardnote">

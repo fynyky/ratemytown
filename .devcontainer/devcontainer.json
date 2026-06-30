@@ -1,14 +1,19 @@
 {
   "name": "Dev",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
-  "forwardPorts": [3000],
+  "forwardPorts": [3000, 9001],
   "portsAttributes": {
     "3000": {
       "label": "App",
       "onAutoForward": "openPreview"
+    },
+    "9001": {
+      "label": "MinIO console",
+      "onAutoForward": "silent"
     }
   },
-  "postCreateCommand": "npm install && npm install -g @anthropic-ai/claude-code",
+  "postCreateCommand": "npm install && npm install -g @anthropic-ai/claude-code && cp -n .env.example .env && bash scripts/dev setup && npm run db:reset",
+  "postStartCommand": "bash scripts/dev start",
   "customizations": {
     "vscode": {
       "extensions": [

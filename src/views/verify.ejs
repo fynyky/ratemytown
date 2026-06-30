@@ -43,15 +43,12 @@
 
     <% if (error) { %><div class="errors" style="margin:10px 0"><%= error %></div><% } %>
 
-    <form method="post" action="/rate/submit">
-      <input type="hidden" name="tc" value="<%= data.tc %>">
-      <input type="hidden" name="overall" value="<%= data.overall %>">
-      <% CATEGORIES.forEach(function(c){ %>
-        <input type="hidden" name="<%= c.key %>" value="<%= data.cats[c.key] %>">
-      <% }) %>
-      <input type="hidden" name="good_text" value="<%= data.goodText %>">
-      <input type="hidden" name="bad_text" value="<%= data.badText %>">
+    <% if (data.photoKeys && data.photoKeys.length) { %>
+      <div class="nriclabel"><%= data.photoKeys.length %> photo<%= data.photoKeys.length > 1 ? 's' : '' %> attached</div>
+    <% } %>
 
+    <form method="post" action="/rate/submit">
+      <%# Review data is held in the Redis-backed session draft, not in the form. %>
       <div class="nriclabel">Demo only — enter any valid NRIC/FIN to simulate Singpass (e.g. S1234567A)</div>
       <input class="nricinput" name="nric" placeholder="S1234567A" autocomplete="off" value="<%= typeof nricValue !== 'undefined' ? nricValue : '' %>">
 
