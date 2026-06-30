@@ -17,15 +17,16 @@ No client-side framework.
 
 Open the repo in the dev container (VS Code "Reopen in Container", or the
 devcontainer CLI). The backing services come up automatically as part of the
-container — nothing to install. After it builds:
+container — nothing to install. The container's `postCreate` already ran
+`npm install`; seed the database once, then start the server:
 
 ```bash
-npm start         # http://localhost:3000
+npm run db:reset   # create schema + seed 19 town councils (run once per rebuild)
+npm start          # http://localhost:3000
 ```
 
-The container's `postCreate` already ran `npm install` and `npm run db:reset`
-(creating the schema and seeding 19 town councils). Service connection settings
-are injected by Compose, so you don't even need a `.env`.
+Service connection settings are injected by Compose, so you don't even need a
+`.env`.
 
 ### Without the dev container
 
@@ -44,8 +45,8 @@ npm start
 
 Defined declaratively in [`.devcontainer/docker-compose.yml`](.devcontainer/docker-compose.yml)
 as sibling containers from official images (no binaries installed into the
-workspace). In the dev container the app reaches them by service name; on bare
-metal, by `localhost`.
+workspace). In the dev container the app reaches them by their Compose service
+name (`db`, `cache`, `blob`); on bare metal, by `localhost`.
 
 | Service | Image | Purpose | Address (host) |
 |---|---|---|---|
@@ -53,8 +54,9 @@ metal, by `localhost`.
 | Redis | `redis:7-alpine` | Sessions + leaderboard cache | `localhost:6379` |
 | MinIO | `minio/minio` | S3-compatible blobstore for review photos | API `:9000`, console `:9001` |
 
-Data persists in named Docker volumes (`pgdata`, `redisdata`, `miniodata`). The
-MinIO console (login `ratemytown` / `ratemytown-dev-secret`) is handy for
+Data lives in each container's writable layer — it survives a stop/start but is
+reset on a container rebuild, after which you re-seed with `npm run db:reset`.
+The MinIO console (login `ratemytown` / `ratemytown-dev-secret`) is handy for
 browsing uploaded photos. Manage the stack with the usual Compose commands
 (`up -d`, `down`, `ps`, `logs`).
 
