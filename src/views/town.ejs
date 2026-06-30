@@ -1,0 +1,97 @@
+<% title = tc.name + ' — RateMyTown.sg' %>
+<%- include('partials/top', { title }) %>
+
+<%
+  const heroReview = reviews.find(function(r){ return r.good_text; });
+  const totalTcs = Object.keys(ranks.overall || {}).length;
+%>
+
+<div class="scroll" style="padding:0">
+  <div class="hero">
+    <div class="tilephoto" style="background:<%= tc.tile_gradient %>"></div>
+    <div class="tilefade"></div>
+    <a class="iconbtn back" href="/" aria-label="Back">‹</a>
+    <% if (heroReview) { %>
+      <div class="heroquote">
+        <div class="q">“<%= heroReview.good_text %>”</div>
+        <div class="by">From a verified resident review</div>
+      </div>
+    <% } %>
+  </div>
+
+  <div style="padding:16px 18px 0">
+    <div class="parea"><%= tc.area %></div>
+    <div class="tcnamed" style="font-size:22px"><%= tc.name %></div>
+    <% if (tc.suppressed) { %>
+      <div class="norating" style="color:var(--mut);margin-top:8px">
+        Not enough verified reviews yet — <%= tc.review_count %> so far. Scores appear once there are enough to be representative.
+      </div>
+    <% } else { %>
+      <div style="display:flex;align-items:center;gap:9px;margin-top:8px">
+        <span class="scorebig"><%= h.fmtScore(tc.overall) %></span>
+        <%- include('partials/stars', { score: tc.overall, size: 17 }) %>
+        <span style="font-size:12px;color:var(--mut)">· <%= h.fmtCount(tc.review_count) %> reviews</span>
+      </div>
+    <% } %>
+  </div>
+
+  <% if (!tc.suppressed) { %>
+    <div style="padding:16px 18px 4px">
+      <% CATEGORIES.forEach(function(c){
+           const score = tc.scores[c.key];
+           const rk = ranks[c.key] && ranks[c.key][tc.id]; %>
+        <div class="catg">
+          <span class="catgn">
+            <span class="catgnm"><%= c.label %><a class="catgi" href="/guide?cat=<%= c.key %>">i</a></span>
+            <% if (rk) { %><span class="catgrkrow"><span class="catgrk">#<%= rk.rank %></span></span><% } %>
+          </span>
+          <span class="catgb"><span style="width:<%= Math.round((score/5)*100) %>%"></span></span>
+          <span class="catgr"><span class="catgv"><%= h.fmtScore(score) %></span></span>
+        </div>
+      <% }) %>
+      <div class="ranknote">Rank of <%= totalTcs %> town councils</div>
+    </div>
+
+    <div class="section" style="padding:16px 18px 8px">
+      <div class="sgtag">In residents' words</div>
+      <div class="summary"><%= tc.blurb %></div>
+    </div>
+  <% } %>
+
+  <div style="padding:8px 18px 24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0 4px;border-top:1px solid #ece6da">
+      <div class="sectit" style="margin:0">Resident reviews</div>
+      <div style="font-size:11.5px;color:var(--green);font-weight:600">Most recent</div>
+    </div>
+
+    <% if (reviews.length === 0) { %>
+      <div class="rvw" style="color:var(--mut)">No reviews yet. Be the first verified resident to share your experience.</div>
+    <% } %>
+
+    <% reviews.forEach(function(r){
+         const tags = h.reviewTags(r, CATEGORIES); %>
+      <div class="rvw">
+        <div class="rvwh">
+          <%- include('partials/stars', { score: r.overall, size: 14 }) %>
+          <span class="rvwmeta">
+            <span class="vchip">Verified</span>
+            <span class="vdot">·</span>
+            <span class="rvwt"><%= h.timeAgo(r.created_at) %></span>
+          </span>
+        </div>
+        <% if (r.good_text) { %><div class="rvwb"><%= r.good_text %></div><% } %>
+        <% if (r.bad_text) { %><div class="rvwb"><%= r.bad_text %></div><% } %>
+        <% if (r.photos && r.photos.length) { %>
+          <div class="rvwphotos"><% r.photos.forEach(function(k){ %><img class="rvwphoto" src="/uploads/<%= k %>" alt="Resident photo" loading="lazy"><% }) %></div>
+        <% } %>
+        <% if (tags.length) { %>
+          <div class="rvwtags"><% tags.forEach(function(t){ %><span class="rvwtag"><%= t %></span><% }) %></div>
+        <% } %>
+      </div>
+    <% }) %>
+
+    <a class="btnf" style="margin-top:18px" href="/rate?tc=<%= tc.slug %>">Rate <%= tc.name %></a>
+  </div>
+</div>
+
+<%- include('partials/bottom') %>

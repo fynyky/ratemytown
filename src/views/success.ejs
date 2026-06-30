@@ -1,0 +1,27 @@
+<% title = 'Review posted — RateMyTown.sg' %>
+<%- include('partials/top', { title }) %>
+
+<div class="success">
+  <div class="checkbadge"><span class="checkdisc">✓</span></div>
+  <div class="successtit">Thank you for sharing</div>
+  <div class="successsub">
+    Your review of <b><%= tc.name %></b> is now live and counts toward its rating.
+    <% if (!isNew) { %>We've updated your previous review for this town.<% } %>
+    Honest experiences like yours help town councils see what's working and where to improve.
+  </div>
+
+  <div class="postedcard">
+    <div>
+      <div class="postedtc"><%= tc.name %></div>
+      <div class="postedanon"><span class="lk"></span> Posted anonymously</div>
+    </div>
+    <%- include('partials/stars', { score: overall, size: 15 }) %>
+  </div>
+
+  <div class="successbtns">
+    <a class="btnf" href="/town/<%= tc.slug %>">See <%= tc.name %>'s page</a>
+    <a class="btnghost" href="/">Back to leaderboard</a>
+  </div>
+</div>
+
+<%- include('partials/bottom') %>

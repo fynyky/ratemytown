@@ -1,0 +1,34 @@
+<% title = 'Rating guide — RateMyTown.sg' %>
+<%- include('partials/top', { title }) %>
+
+<div class="appbar">
+  <a class="iconbtn back" href="javascript:history.back()" aria-label="Back">‹</a>
+  <div class="bartitle">Rating guide</div>
+  <div style="width:34px"></div>
+</div>
+
+<div class="scroll" style="padding-top:8px">
+  <div class="sgtag">How to rate</div>
+  <div class="abprose" style="margin-top:4px">Rate each area on how it actually feels to live here — not whether it's perfect, but whether the town council is keeping things in good shape and taking residents seriously. Here's what each star roughly means, and what each category covers.</div>
+
+  <% CATEGORIES.forEach(function(c){ %>
+    <div class="guidecat<%= focus === c.key ? ' focus' : '' %>"<% if (focus === c.key) { %> id="focus"<% } %>>
+      <div class="scalelabel" style="font-size:15px"><%= c.label %></div>
+      <div class="scaledesc" style="font-size:12.5px;margin:4px 0 10px"><%= c.desc %></div>
+      <% RATING_SCALE.forEach(function(s){ %>
+        <div class="scalerow">
+          <span class="scalestars"><% for (var i=1;i<=5;i++){ %><span class="<%= i <= s.n ? 'on' : '' %>">★</span><% } %></span>
+          <div>
+            <div class="scalelabel"><%= s.label %></div>
+            <div class="scaledesc"><%= s.desc %></div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% }) %>
+
+  <a class="btnf" style="margin:20px 0 22px" href="/rate">Rate your town</a>
+</div>
+
+<% if (focus) { %><script>document.getElementById('focus')&&document.getElementById('focus').scrollIntoView({block:'center'});</script><% } %>
+<%- include('partials/bottom') %>

@@ -1,0 +1,2 @@
+<%# renders 5 static stars given `score` (and optional `size` px) %>
+<span class="stars"<% if (typeof size !== 'undefined') { %> style="font-size:<%= size %>px"<% } %>><% h.starArray(score).forEach(function(on){ %><span class="star<%= on ? ' on' : '' %>">★</span><% }) %></span>
