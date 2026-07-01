@@ -35,6 +35,8 @@ a { color: inherit; text-decoration: none; }
 
 .body { flex: 1; display: flex; flex-direction: column; position: relative; }
 .scroll { flex: 1; padding: 0 max(18px, calc((100% - var(--col)) / 2)) 100px; }
+/* Town page: hero is full-bleed, the rest is centred to the reading column. */
+.townbody { padding: 0 max(18px, calc((100% - var(--col)) / 2)) 100px; }
 
 /* App bar */
 .appbar {
@@ -137,24 +139,25 @@ a { color: inherit; text-decoration: none; }
 .parea { font-size: 12px; color: var(--mut); font-weight: 600; margin-bottom: 3px; }
 .scorebig { font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 600; }
 
-.catg { display: flex; align-items: center; gap: 11px; padding: 8px 0; }
-.catgn { flex: 0 0 150px; display: flex; flex-direction: column; gap: 2px; }
-.catgnm { font-size: 13px; line-height: 1.3; }
 .catgi {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 14px; height: 14px; border-radius: 50%; border: 1.2px solid var(--mut2);
-  color: var(--mut); font-size: 9px; font-weight: 700; font-style: italic;
-  font-family: Georgia, serif; margin-left: 5px; vertical-align: middle; cursor: pointer;
+  width: 13px; height: 13px; border-radius: 50%; border: 1.2px solid var(--mut2);
+  color: var(--mut); font-size: 8.5px; font-weight: 700; font-style: italic;
+  font-family: Georgia, serif; vertical-align: middle; cursor: pointer;
 }
-.catgrkrow { display: flex; align-items: center; gap: 5px; margin-top: 1px; }
-.catgrk { font-size: 10.5px; color: var(--mut); font-weight: 600; }
-.catgt { font-size: 10px; font-weight: 600; }
-.catgt.up { color: #2e9c68; } .catgt.dn { color: #d2603f; } .catgt.fl { color: #b0a99c; }
-.catgb { flex: 1; height: 7px; border-radius: 4px; background: #efece4; overflow: hidden; }
-.catgb span { display: block; height: 100%; background: var(--acc); border-radius: 4px; }
-.catgr { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; }
-.catgv { font-family: 'Fredoka', sans-serif; font-size: 13px; font-weight: 600; width: 24px; text-align: right; }
-.ranknote { font-size: 10.5px; color: var(--mut2); margin: 4px 0 8px; }
+
+/* Compact category scores on the town page — a clean horizontal grid that
+   mirrors the leaderboard tiles, carrying the ⓘ guide button and each rank. */
+.catgrid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px;
+  background: #fff; border: 1px solid #ece6da; border-radius: 16px; padding: 14px 12px;
+  box-shadow: 0 5px 16px rgba(50,45,40,.05);
+}
+.catcell { text-align: center; }
+.catcell-lab { display: inline-flex; align-items: center; justify-content: center; gap: 3px; font-size: 8.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #a8a39b; }
+.catcell-val { font-family: 'Fredoka', sans-serif; font-size: 17px; font-weight: 600; color: #46423d; margin-top: 5px; }
+.catcell-rank { font-size: 10px; font-weight: 600; color: var(--mut); margin-top: 2px; }
+.ranknote { font-size: 10.5px; color: var(--mut2); margin: 10px 0 0; text-align: center; }
 
 .sgtag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--acc); margin-bottom: 6px; }
 .summary { font-size: 13.5px; line-height: 1.55; color: #33271d; }
