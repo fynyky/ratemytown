@@ -42,7 +42,7 @@
       <% CATEGORIES.forEach(function(c){ %>
         <div class="catrate">
           <div class="crleft">
-            <span class="crname"><%= c.label %><a class="infoic2" href="/guide?cat=<%= c.key %>">i</a></span>
+            <span class="crname"><%= c.label %><a class="infoic2" href="/guide?cat=<%= c.key %>" data-guide="<%= c.key %>">i</a></span>
             <span class="crdesc"><%= c.desc %></span>
           </div>
           <%- include('partials/starinput', { name: c.key, value: parseInt(f[c.key]) || 0, cls: 'crstars' }) %>
@@ -74,3 +74,4 @@
   </div>
 </form>
 
+<%- include('partials/guide-sheet') %>

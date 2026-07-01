@@ -1,0 +1,26 @@
+<%# Rating-guide bottom sheet (mock 03), opened from the ⓘ next to a category.
+    One panel per category is rendered up front; app.js reveals the requested
+    one and shows the sheet. Progressive enhancement: the ⓘ links still point at
+    /guide?cat=… so the guide works with JavaScript disabled. %>
+<div class="modal" id="guideModal" hidden>
+  <button type="button" class="modal-scrim" data-guide-close aria-label="Close"></button>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Rating guide">
+    <div class="grab"></div>
+    <div class="sgtag">Rating guide</div>
+    <% CATEGORIES.forEach(function(c){ %>
+      <div class="guidepanel" data-cat="<%= c.key %>" hidden>
+        <div class="sheettit"><%= c.label %></div>
+        <div class="sheetsub"><%= c.desc %></div>
+        <% c.scale.forEach(function(s){ %>
+          <div class="scalerow">
+            <span class="scalestars"><% for (var i=1;i<=5;i++){ %><span class="<%= i <= s.n ? 'on' : '' %>">★</span><% } %></span>
+            <div>
+              <div class="scalelabel"><%= s.label %></div>
+              <div class="scaledesc"><%= s.desc %></div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% }) %>
+  </div>
+</div>
