@@ -62,7 +62,7 @@ a { color: inherit; text-decoration: none; }
   color: #b07a52; font-size: 15px; flex: 0 0 34px;
 }
 .iconbtn.back { font-size: 20px; }
-.aboutbtn, .aboutpill { font-size: 13px; font-weight: 600; color: var(--acc); padding: 4px; }
+.aboutpill { font-size: 13px; font-weight: 600; color: var(--acc); padding: 4px; }
 .bartitle { font-family: 'Fredoka', sans-serif; font-size: 17px; font-weight: 600; }
 
 /* Chips */
@@ -84,7 +84,6 @@ a { color: inherit; text-decoration: none; }
 .star.on { color: var(--amber); }
 
 /* Leaderboard rows */
-.lblead { font-size: 12px; color: var(--mut); font-weight: 500; padding: 0 2px 12px; line-height: 1.4; }
 .lbrow {
   position: relative; overflow: hidden; background: #fff; border-radius: 20px;
   box-shadow: 0 5px 16px rgba(50,45,40,.06); margin-bottom: 14px;
@@ -107,12 +106,10 @@ a { color: inherit; text-decoration: none; }
 .sublab { font-size: 8.5px; font-weight: 700; letter-spacing: .05em; color: #a8a39b; text-transform: uppercase; }
 .subv { font-family: 'Fredoka', sans-serif; font-size: 14px; font-weight: 600; color: #46423d; margin-top: 3px; }
 .sub.on .sublab, .sub.on .subv { color: var(--acc); }
-.suppressed { background: #fff; }
-.suppressed .tcnamed { color: var(--ink); }
+/* Suppressed (too-few-reviews) rows render as flat name-only cards. */
 .lbrow.flat { min-height: auto; padding: 16px 18px; background: #fff; }
 .lbrow.flat .tcnamed { font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 16px; color: var(--ink); }
 .norating { font-size: 11.5px; color: var(--mut); margin-top: 3px; }
-.lbarea { font-size: 11px; color: rgba(255,255,255,.85); padding: 0 18px 2px; text-shadow: 0 1px 4px rgba(0,0,0,.4); }
 
 /* Sticky CTA */
 .ctabar {
@@ -133,7 +130,7 @@ a { color: inherit; text-decoration: none; }
 .hero .tilephoto { position: absolute; inset: 0; }
 .hero .iconbtn.back { position: absolute; left: 14px; top: 14px; z-index: 3; background: rgba(255,255,255,.9); }
 .heroquote { position: absolute; left: 18px; right: 18px; bottom: 26px; z-index: 2; color: #fff; }
-.heroquote .q { font-size: 14px; font-weight: 500; line-height: 1.45; text-shadow: 0 1px 6px rgba(0,0,0,.5); }
+.heroquote .q { font-size: 14px; font-weight: 500; line-height: 1.45; text-shadow: 0 1px 6px rgba(0,0,0,.5); overflow-wrap: anywhere; }
 .heroquote .by { font-size: 11px; opacity: .85; margin-top: 7px; text-shadow: 0 1px 5px rgba(0,0,0,.5); }
 .tcnamed { font-family: 'Fredoka', sans-serif; font-weight: 500; letter-spacing: 0; line-height: 1.15; color: var(--ink); }
 .parea { font-size: 12px; color: var(--mut); font-weight: 600; margin-bottom: 3px; }
@@ -160,7 +157,7 @@ a { color: inherit; text-decoration: none; }
 .ranknote { font-size: 10.5px; color: var(--mut2); margin: 10px 0 0; text-align: center; }
 
 .sgtag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--acc); margin-bottom: 6px; }
-.summary { font-size: 13.5px; line-height: 1.55; color: #33271d; }
+.summary { font-size: 13.5px; line-height: 1.55; color: #33271d; overflow-wrap: anywhere; }
 .section { padding: 16px 0; }
 .sectit { font-family: 'Fredoka', sans-serif; font-size: 15px; font-weight: 600; margin: 4px 0 10px; }
 
@@ -168,10 +165,10 @@ a { color: inherit; text-decoration: none; }
 .rvw { padding: 14px 0; border-top: 1px solid #ece6da; }
 .rvwh { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
 .rvwt { font-size: 11px; color: var(--mut); }
-.rvwb { font-size: 13px; line-height: 1.5; color: #33271d; }
+.rvwb { font-size: 13px; line-height: 1.5; color: #33271d; overflow-wrap: anywhere; }
 .rvwb + .rvwb { margin-top: 6px; color: #6a645c; }
 .rvwtags { display: flex; gap: 6px; flex-wrap: wrap; margin: 9px 0 0; }
-.rvwtag { font-size: 10.5px; font-weight: 600; color: #7a756e; background: #f4efe6; border-radius: 20px; padding: 3px 9px; }
+.rvwtag { font-size: 10.5px; font-weight: 600; color: #7a756e; background: #f4efe6; border-radius: 20px; padding: 3px 9px; overflow-wrap: anywhere; }
 .rvwmeta { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--mut); }
 .vchip { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: #2e9c68; }
 .vchip::before { content: "✓"; font-size: 9px; font-weight: 700; width: 12px; height: 12px; border-radius: 50%; background: #2e9c68; color: #fff; display: inline-flex; align-items: center; justify-content: center; }
@@ -193,7 +190,6 @@ a { color: inherit; text-decoration: none; }
 .field { margin-bottom: 20px; }
 .flab { font-family: 'Fredoka', sans-serif; font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 9px; display: block; }
 .flab .opt { font-weight: 400; color: var(--mut); font-size: 11px; }
-.fhint { font-size: 11.5px; color: var(--mut); margin-top: 7px; line-height: 1.4; }
 .selectbox {
   display: flex; align-items: center; justify-content: space-between;
   background: #fff; border: 1.4px solid #e8e6e2; border-radius: 16px; padding: 12px 14px;
@@ -228,6 +224,11 @@ a { color: inherit; text-decoration: none; }
 .crstars .star { transition: color .08s, transform .08s; }
 .crstars .star.on { color: #f7cd8a; }
 .crstars .star.sel { color: var(--amber); }
+
+/* Keyboard focus ring for the interactive star inputs (the group is a single
+   tab stop via a roving tabindex; see app.js). */
+.starrate .star { outline: none; }
+.starrate .star:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; border-radius: 4px; }
 
 /* Brief pop on the star that was clicked, confirming the selection registered. */
 .star.pop { animation: starpop .22s ease; }
@@ -264,7 +265,6 @@ textarea.ta::placeholder { color: #a8a39b; }
   font-weight: 600; font-size: 14px; padding: 13px; border-radius: 30px;
   border: 1.5px solid #e2dccf; font-family: inherit; cursor: pointer;
 }
-.footbar { padding: 13px 18px 22px; border-top: 1px solid #ececea; background: #fff; }
 
 /* Bottom-sheet modal (verify + rating guide, mocks 03 / 04) — a scrim over the
    dimmed page with a sheet that slides up from the bottom, centred to --col. */
@@ -318,8 +318,6 @@ textarea.ta::placeholder { color: #a8a39b; }
 .sheetnote { font-size: 11px; color: var(--mut2); text-align: center; margin-top: 12px; line-height: 1.4; }
 .nricinput { width: 100%; border: 1.4px solid #e8e6e2; border-radius: 14px; padding: 13px; font-size: 14px; font-family: inherit; outline: none; margin-bottom: 6px; letter-spacing: .04em; }
 .nriclabel { font-size: 12px; font-weight: 600; color: var(--mut); margin-bottom: 8px; }
-.summchips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-.summchip { font-size: 11px; font-weight: 600; color: #7a756e; background: #f4efe6; border-radius: 20px; padding: 4px 10px; }
 
 /* Success */
 .success { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 28px; }

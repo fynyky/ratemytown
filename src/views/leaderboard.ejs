@@ -12,14 +12,8 @@
 </div>
 
 <%
-  const sortChips = [
-    ['overall', 'Overall'],
-    ['service', 'Service'],
-    ['cleanliness', 'Cleanliness'],
-    ['maintenance', 'Maintenance'],
-    ['pest_control', 'Pest control'],
-    ['environment', 'Estate environment'],
-  ];
+  // Overall, then one chip per category — derived from the shared category list.
+  const sortChips = [['overall', 'Overall'], ...CATEGORIES.map((c) => [c.key, c.label])];
 %>
 <div class="chiprow">
   <% sortChips.forEach(function(c){ %>
@@ -31,7 +25,7 @@
 
   <% leaderboard.forEach(function(r){ %>
     <% if (r.suppressed) { %>
-      <a class="lbrow flat suppressed" href="/town/<%= r.slug %>">
+      <a class="lbrow flat" href="/town/<%= r.slug %>">
         <div class="tcnamed"><%= r.name %></div>
         <div class="norating">Not enough verified reviews yet · <%= r.review_count %> so far</div>
       </a>

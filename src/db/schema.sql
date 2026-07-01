@@ -14,8 +14,6 @@ CREATE TABLE town_councils (
   slug          TEXT NOT NULL UNIQUE,
   name          TEXT NOT NULL,
   area          TEXT NOT NULL,          -- e.g. "Tampines GRC · 12 estates"
-  estates_count INTEGER NOT NULL DEFAULT 0,
-  tile_gradient TEXT NOT NULL,          -- leaderboard tile background
   blurb         TEXT,                   -- AI-style "in residents' words" summary
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
