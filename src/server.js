@@ -1,4 +1,5 @@
 import express from 'express';
+import expressLayouts from 'express-ejs-layouts';
 import multer from 'multer';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -30,6 +31,8 @@ const upload = multer({
 
 app.set('view engine', 'ejs');
 app.set('views', join(__dirname, 'views'));
+app.use(expressLayouts);
+app.set('layout', 'partials/layout');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(join(__dirname, '..', 'public')));
 app.use(sessionMiddleware());
