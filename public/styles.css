@@ -279,7 +279,25 @@ textarea.ta::placeholder { color: #a8a39b; }
   animation: sheetup .26s cubic-bezier(.22,.61,.36,1);
 }
 @keyframes sheetup { from { transform: translateY(28px); opacity: .4; } to { transform: none; opacity: 1; } }
-.grab { width: 42px; height: 5px; border-radius: 3px; background: #dcd9d3; margin: 0 auto 18px; }
+
+/* The grab handle dismisses the sheet; the padded wrapper gives it a real tap
+   target (the bar itself is only 42×5). */
+.grabhit { display: block; width: 100%; padding: 2px 0 16px; background: none; border: none; cursor: pointer; }
+.grab { width: 42px; height: 5px; border-radius: 3px; background: #dcd9d3; margin: 0 auto; }
+.grabhit:hover .grab, .grabhit:focus-visible .grab { background: #c2beb6; }
+
+/* Wide screens: a centred modal card rather than a sheet anchored to the bottom. */
+@media (min-width: 640px) {
+  .modal { justify-content: center; align-items: center; padding: 28px; }
+  .modal .sheet {
+    border-radius: 28px;
+    max-height: min(88vh, 720px);
+    box-shadow: 0 24px 60px rgba(60,40,25,.30);
+    animation: sheetpop .2s ease;
+  }
+  .grabhit { display: none; }
+}
+@keyframes sheetpop { from { transform: scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
 
 /* Blurred, non-interactive rate form behind the verify sheet (mock 04) */
 .ratebackdrop { filter: blur(2px); opacity: .5; pointer-events: none; user-select: none; }
