@@ -8,15 +8,10 @@ const AVG_COLUMNS = [
   ...CATEGORY_KEYS.map((k) => `AVG(r.${k})::numeric(10,4) AS ${k}`),
 ].join(', ');
 
-// Sort key -> aggregate expression for the leaderboard.
-const SORT_EXPR = {
-  overall: 'AVG(r.overall)',
-  service: 'AVG(r.service)',
-  cleanliness: 'AVG(r.cleanliness)',
-  maintenance: 'AVG(r.maintenance)',
-  pest_control: 'AVG(r.pest_control)',
-  environment: 'AVG(r.environment)',
-};
+// Sort key -> aggregate expression for the leaderboard (overall + each category).
+const SORT_EXPR = Object.fromEntries(
+  ['overall', ...CATEGORY_KEYS].map((k) => [k, `AVG(r.${k})`])
+);
 
 export const SORT_KEYS = Object.keys(SORT_EXPR);
 
@@ -39,18 +34,16 @@ export async function getLeaderboard(sort = 'overall') {
 // Per-category rank of a town council among all TCs (1 = best).
 export async function getCategoryRanks() {
   const ranks = {};
-  for (const key of ['overall', ...CATEGORY_KEYS]) {
-    const col = key === 'overall' ? 'overall' : key;
+  for (const key of CATEGORY_KEYS) {
     const { rows } = await query(
       `SELECT tc.id,
-              RANK() OVER (ORDER BY AVG(r.${col}) DESC NULLS LAST) AS rnk,
-              COUNT(r.id)::int AS n
+              RANK() OVER (ORDER BY AVG(r.${key}) DESC NULLS LAST) AS rnk
          FROM town_councils tc
          LEFT JOIN reviews r ON r.town_council_id = tc.id
         GROUP BY tc.id`
     );
     ranks[key] = {};
-    for (const row of rows) ranks[key][row.id] = { rank: row.rnk, n: row.n };
+    for (const row of rows) ranks[key][row.id] = { rank: row.rnk };
   }
   return ranks;
 }
@@ -112,11 +105,6 @@ export async function listTownCouncils() {
     `SELECT id, slug, name, area FROM town_councils ORDER BY name ASC`
   );
   return rows;
-}
-
-export async function getTownCouncilById(id) {
-  const { rows } = await query(`SELECT * FROM town_councils WHERE id = $1`, [id]);
-  return rows[0] || null;
 }
 
 // Upsert a resident by NRIC hash; returns resident id.

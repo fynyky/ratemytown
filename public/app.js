@@ -36,7 +36,20 @@
   });
 })();
 
+// Centre the active sort chip in the scrollable chip row, so the current sort
+// is always visible even when it sits off the right edge on narrow screens.
+(function () {
+  var row = document.querySelector('.chiprow');
+  if (!row) return;
+  var active = row.querySelector('.chip.on');
+  if (!active) return;
+  row.scrollLeft = active.offsetLeft - (row.clientWidth - active.offsetWidth) / 2;
+})();
+
 // Progressive enhancement for the star-rating inputs on the review form.
+// The group behaves as an ARIA radiogroup: click or keyboard (arrows / Home /
+// End / Enter / Space) sets the rating, with a roving tabindex so the whole
+// group is a single tab stop.
 document.querySelectorAll('[data-starinput]').forEach(function (group) {
   var input = group.querySelector('input[type="hidden"]');
   var stars = Array.prototype.slice.call(group.querySelectorAll('.star'));
@@ -47,30 +60,59 @@ document.querySelectorAll('[data-starinput]').forEach(function (group) {
     var selected = parseInt(input.value, 10) || 0;
     stars.forEach(function (s) {
       var v = parseInt(s.dataset.val, 10);
-      var on = v <= value;
-      s.classList.toggle('on', on);
+      s.classList.toggle('on', v <= value);
       s.classList.toggle('sel', v <= selected);
-      s.setAttribute('aria-checked', v <= selected ? 'true' : 'false');
+      // Only the committed star is the "checked" radio; the fill is visual.
+      s.setAttribute('aria-checked', v === selected ? 'true' : 'false');
     });
+  }
+
+  // Roving tabindex: the committed star (or the first, if none) is the tab stop.
+  function setTabStop(value) {
+    var stop = value || 1;
+    stars.forEach(function (s) {
+      s.tabIndex = parseInt(s.dataset.val, 10) === stop ? 0 : -1;
+    });
+  }
+
+  function select(value, focus) {
+    input.value = value;
+    paint(value);
+    setTabStop(value);
+    var star = stars[value - 1];
+    if (focus) star.focus();
+    // Restart the pop animation to confirm the selection registered.
+    star.classList.remove('pop');
+    void star.offsetWidth;
+    star.classList.add('pop');
   }
 
   stars.forEach(function (star) {
     var val = parseInt(star.dataset.val, 10);
     star.style.cursor = 'pointer';
-    star.addEventListener('click', function () {
-      input.value = val;
-      paint(val);
-      // Restart the pop animation to confirm the click registered.
-      star.classList.remove('pop');
-      void star.offsetWidth;
-      star.classList.add('pop');
-    });
+    star.addEventListener('click', function () { select(val, false); });
     star.addEventListener('mouseenter', function () { paint(val); });
+    star.addEventListener('keydown', function (e) {
+      var cur = parseInt(input.value, 10) || 0;
+      var next;
+      switch (e.key) {
+        case 'ArrowRight': case 'ArrowUp': next = Math.min(5, cur + 1); break;
+        case 'ArrowLeft': case 'ArrowDown': next = Math.max(1, (cur || 1) - 1); break;
+        case 'Home': next = 1; break;
+        case 'End': next = 5; break;
+        case 'Enter': case ' ': next = val; break;
+        default: return;
+      }
+      e.preventDefault();
+      select(next, true);
+    });
   });
 
   group.addEventListener('mouseleave', function () {
     paint(parseInt(input.value, 10) || 0);
   });
+
+  setTabStop(parseInt(input.value, 10) || 0);
 });
 
 // Tile-based photo picker: accumulate selections, preview each as a tile with a

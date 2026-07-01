@@ -22,36 +22,28 @@ function ratingNear(target) {
   return Math.max(1, Math.min(5, Math.round(target + jitter)));
 }
 
-// Build a leaderboard tile gradient (mirrors the mock's wash() helper).
-function wash(a, b, c) {
-  return (
-    `radial-gradient(130% 100% at 88% 12%, ${a}, transparent 60%), ` +
-    `linear-gradient(135deg, ${b}, ${c})`
-  );
-}
-
 // 19 town councils (neutral framing, no party labels — PRD §10).
-// [name, area, estates, targetOverall, gradient colors]
+// [name, area, estates, targetOverall]
 const TOWN_COUNCILS = [
-  ['Tampines', 'Tampines GRC', 12, 4.5, ['#7bbf8f', '#cfe6d6', '#eff5ef']],
-  ['Pasir Ris–Punggol', 'Pasir Ris–Punggol GRC', 14, 4.4, ['#7fc6cf', '#d2eaee', '#eef6f7']],
-  ['Bishan–Toa Payoh', 'Bishan–Toa Payoh GRC', 9, 4.3, ['#d8b46a', '#ece0c4', '#f6f1e6']],
-  ['Ang Mo Kio', 'Ang Mo Kio GRC', 11, 4.2, ['#e0976a', '#f0d8c6', '#f8efe8']],
-  ['Marine Parade–Braddell Heights', 'Marine Parade–Braddell Heights GRC', 10, 4.1, ['#84a9d6', '#d4e2f0', '#eef3f8']],
-  ['Jurong–Clementi', 'Jurong–Clementi GRC', 13, 4.0, ['#8fa6b8', '#d6e0e8', '#eef2f5']],
-  ['Sengkang', 'Sengkang GRC', 7, 3.9, ['#8cc59b', '#d4ebd9', '#eff7f1']],
-  ['Aljunied–Hougang', 'Aljunied–Hougang TC', 8, 3.8, ['#c79bc4', '#e6d4e6', '#f5eef5']],
-  ['Chua Chu Kang', 'Chua Chu Kang GRC', 8, 4.1, ['#9ec77e', '#dcebcb', '#f1f6ea']],
-  ['East Coast', 'East Coast GRC', 9, 4.0, ['#6cc0b6', '#cfe9e5', '#edf7f5']],
-  ['Holland–Bukit Panjang', 'Holland–Bukit Panjang GRC', 8, 3.9, ['#d0a3cf', '#ecd9ec', '#f7eff7']],
-  ['Jalan Besar', 'Jalan Besar GRC', 6, 4.2, ['#e3a86a', '#f1ddc6', '#f9f0e6']],
-  ['Marsiling–Yew Tee', 'Marsiling–Yew Tee GRC', 7, 3.8, ['#8fb0d8', '#d6e2f1', '#eef3f9']],
-  ['Nee Soon', 'Nee Soon GRC', 9, 4.0, ['#7cc6a0', '#cfeadd', '#edf7f1']],
-  ['Sembawang', 'Sembawang GRC', 8, 3.9, ['#cdb46f', '#e9e0c5', '#f5f1e6']],
-  ['Tanjong Pagar', 'Tanjong Pagar GRC', 10, 4.3, ['#cf8f7e', '#ecd4cc', '#f7efeb']],
-  ['West Coast–Jurong West', 'West Coast–Jurong West GRC', 11, 3.7, ['#9aa6c7', '#d9dded', '#eff1f8']],
-  ['Hong Kah North', 'Hong Kah North SMC', 3, 4.1, ['#86c79a', '#d2ebda', '#eef7f1']],
-  ['Potong Pasir', 'Potong Pasir SMC', 2, 4.0, ['#d6b06a', '#ebe0c4', '#f6f1e6']],
+  ['Tampines', 'Tampines GRC', 12, 4.5],
+  ['Pasir Ris–Punggol', 'Pasir Ris–Punggol GRC', 14, 4.4],
+  ['Bishan–Toa Payoh', 'Bishan–Toa Payoh GRC', 9, 4.3],
+  ['Ang Mo Kio', 'Ang Mo Kio GRC', 11, 4.2],
+  ['Marine Parade–Braddell Heights', 'Marine Parade–Braddell Heights GRC', 10, 4.1],
+  ['Jurong–Clementi', 'Jurong–Clementi GRC', 13, 4.0],
+  ['Sengkang', 'Sengkang GRC', 7, 3.9],
+  ['Aljunied–Hougang', 'Aljunied–Hougang TC', 8, 3.8],
+  ['Chua Chu Kang', 'Chua Chu Kang GRC', 8, 4.1],
+  ['East Coast', 'East Coast GRC', 9, 4.0],
+  ['Holland–Bukit Panjang', 'Holland–Bukit Panjang GRC', 8, 3.9],
+  ['Jalan Besar', 'Jalan Besar GRC', 6, 4.2],
+  ['Marsiling–Yew Tee', 'Marsiling–Yew Tee GRC', 7, 3.8],
+  ['Nee Soon', 'Nee Soon GRC', 9, 4.0],
+  ['Sembawang', 'Sembawang GRC', 8, 3.9],
+  ['Tanjong Pagar', 'Tanjong Pagar GRC', 10, 4.3],
+  ['West Coast–Jurong West', 'West Coast–Jurong West GRC', 11, 3.7],
+  ['Hong Kah North', 'Hong Kah North SMC', 3, 4.1],
+  ['Potong Pasir', 'Potong Pasir SMC', 2, 4.0],
 ];
 
 const BLURBS = [
@@ -110,7 +102,7 @@ async function main() {
 
     let residentSeq = 0;
     for (let t = 0; t < TOWN_COUNCILS.length; t++) {
-      const [name, area, estates, target, colors] = TOWN_COUNCILS[t];
+      const [name, area, estates, target] = TOWN_COUNCILS[t];
       const slug = name
         .toLowerCase()
         .normalize('NFD')
@@ -118,13 +110,12 @@ async function main() {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '');
       const areaLabel = `${area} · ${estates} estates`;
-      const gradient = wash(colors[0], colors[1], colors[2]);
       const blurb = BLURBS[t % BLURBS.length];
 
       const tcRes = await client.query(
-        `INSERT INTO town_councils (slug, name, area, estates_count, tile_gradient, blurb)
-         VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
-        [slug, name, areaLabel, estates, gradient, blurb]
+        `INSERT INTO town_councils (slug, name, area, blurb)
+         VALUES ($1,$2,$3,$4) RETURNING id`,
+        [slug, name, areaLabel, blurb]
       );
       const tcId = tcRes.rows[0].id;
 

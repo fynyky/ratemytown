@@ -2,7 +2,8 @@
 
 <%
   const heroReview = reviews.find(function(r){ return r.good_text; });
-  const totalTcs = Object.keys(ranks.overall || {}).length;
+  // Every category rank map covers all town councils, so any one gives the total.
+  const totalTcs = Object.keys(ranks[CATEGORIES[0].key] || {}).length;
 %>
 
 <div class="scroll" style="padding:0">
@@ -24,7 +25,7 @@
       <div class="parea"><%= tc.area %></div>
       <div class="tcnamed" style="font-size:22px"><%= tc.name %></div>
       <% if (tc.suppressed) { %>
-        <div class="norating" style="color:var(--mut);margin-top:8px">
+        <div class="norating" style="margin-top:8px">
           Not enough verified reviews yet — <%= tc.review_count %> so far. Scores appear once there are enough to be representative.
         </div>
       <% } else { %>

@@ -66,7 +66,7 @@ app.get('/guide', (req, res) => {
 });
 
 // --- Serve an uploaded photo from the blobstore ----------------------------
-app.get('/uploads/:dir/:file', async (req, res, next) => {
+app.get('/uploads/:dir/:file', async (req, res) => {
   const key = `${req.params.dir}/${req.params.file}`;
   if (!/^reviews\/[\w.-]+$/.test(key)) return res.status(400).end();
   try {
@@ -74,7 +74,11 @@ app.get('/uploads/:dir/:file', async (req, res, next) => {
     res.setHeader('Content-Type', stat.metaData['content-type'] || 'application/octet-stream');
     res.setHeader('Cache-Control', 'public, max-age=86400');
     const stream = await getObjectStream(key);
-    stream.on('error', () => res.status(404).end());
+    stream.on('error', () => {
+      // A mid-stream failure may arrive after headers/bytes are already sent.
+      if (!res.headersSent) res.status(404);
+      res.end();
+    });
     stream.pipe(res);
   } catch {
     res.status(404).end();
@@ -191,9 +195,8 @@ app.post('/rate/submit', async (req, res, next) => {
 
     const nricHash = hashNric(nric);
     const residentId = await db.findOrCreateResident(nricHash);
-    const tcRow = await db.getTownCouncilById(tc.id);
     const { id: reviewId, isNew } = await db.upsertReview({
-      townCouncilId: tcRow.id,
+      townCouncilId: tc.id,
       residentId,
       overall: draft.overall,
       cats: draft.cats,
@@ -208,7 +211,7 @@ app.post('/rate/submit', async (req, res, next) => {
     delete req.session.reviewDraft;
     await invalidateLeaderboard(); // scores changed
 
-    res.render('success', { tc: tcRow, overall: draft.overall, isNew });
+    res.render('success', { tc, overall: draft.overall, isNew });
   } catch (err) {
     next(err);
   }
