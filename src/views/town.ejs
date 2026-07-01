@@ -22,16 +22,21 @@
   <div class="townbody">
     <div style="padding-top:16px">
       <div class="parea"><%= tc.area %></div>
-      <div class="tcnamed" style="font-size:22px"><%= tc.name %></div>
+      <div class="townhead">
+        <div class="tcnamed" style="font-size:22px"><%= tc.name %></div>
+        <% if (!tc.suppressed) { %>
+          <div class="townhead-r">
+            <div class="townscore">
+              <span class="scorebig"><%= h.fmtScore(tc.overall) %></span>
+              <%- include('partials/stars', { score: tc.overall, size: 15 }) %>
+            </div>
+            <div class="towncount"><%= h.fmtCount(tc.review_count) %> reviews</div>
+          </div>
+        <% } %>
+      </div>
       <% if (tc.suppressed) { %>
         <div class="norating" style="color:var(--mut);margin-top:8px">
           Not enough verified reviews yet — <%= tc.review_count %> so far. Scores appear once there are enough to be representative.
-        </div>
-      <% } else { %>
-        <div style="display:flex;align-items:center;gap:9px;margin-top:8px">
-          <span class="scorebig"><%= h.fmtScore(tc.overall) %></span>
-          <%- include('partials/stars', { score: tc.overall, size: 17 }) %>
-          <span style="font-size:12px;color:var(--mut)">· <%= h.fmtCount(tc.review_count) %> reviews</span>
         </div>
       <% } %>
     </div>
