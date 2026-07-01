@@ -1,3 +1,41 @@
+// Rating-guide bottom sheet (mock 03): the ⓘ next to a category opens a modal
+// with that category's scale instead of navigating to the full /guide page.
+(function () {
+  var modal = document.getElementById('guideModal');
+  if (!modal) return;
+  var panels = Array.prototype.slice.call(modal.querySelectorAll('.guidepanel'));
+
+  function open(key) {
+    var found = false;
+    panels.forEach(function (p) {
+      var match = p.dataset.cat === key;
+      p.hidden = !match;
+      if (match) found = true;
+    });
+    if (!found) return; // unknown category — let the link fall through to /guide
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function close() {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('[data-guide]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      if (!modal.querySelector('.guidepanel[data-cat="' + el.dataset.guide + '"]')) return;
+      e.preventDefault();
+      open(el.dataset.guide);
+    });
+  });
+  modal.querySelectorAll('[data-guide-close]').forEach(function (el) {
+    el.addEventListener('click', close);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !modal.hidden) close();
+  });
+})();
+
 // Progressive enhancement for the star-rating inputs on the review form.
 document.querySelectorAll('[data-starinput]').forEach(function (group) {
   var input = group.querySelector('input[type="hidden"]');

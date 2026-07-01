@@ -41,7 +41,7 @@
            const rk = ranks[c.key] && ranks[c.key][tc.id]; %>
         <div class="catg">
           <span class="catgn">
-            <span class="catgnm"><%= c.label %><a class="catgi" href="/guide?cat=<%= c.key %>">i</a></span>
+            <span class="catgnm"><%= c.label %><a class="catgi" href="/guide?cat=<%= c.key %>" data-guide="<%= c.key %>">i</a></span>
             <% if (rk) { %><span class="catgrkrow"><span class="catgrk">#<%= rk.rank %></span></span><% } %>
           </span>
           <span class="catgb"><span style="width:<%= Math.round((score/5)*100) %>%"></span></span>
@@ -92,4 +92,6 @@
     <a class="btnf" style="margin-top:18px" href="/rate?tc=<%= tc.slug %>">Rate <%= tc.name %></a>
   </div>
 </div>
+
+<%- include('partials/guide-sheet') %>
 

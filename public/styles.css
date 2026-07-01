@@ -263,9 +263,47 @@ textarea.ta::placeholder { color: #a8a39b; }
 }
 .footbar { padding: 13px 18px 22px; border-top: 1px solid #ececea; background: #fff; }
 
-/* Verify (Singpass) sheet */
-.sheetwrap { padding: 18px; }
-.sheet { background: #fff; border-radius: 22px; padding: 20px; box-shadow: 0 8px 30px rgba(60,40,25,.08); }
+/* Bottom-sheet modal (verify + rating guide, mocks 03 / 04) — a scrim over the
+   dimmed page with a sheet that slides up from the bottom, centred to --col. */
+.modal {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.modal[hidden] { display: none; }
+.modal-scrim { position: absolute; inset: 0; z-index: 0; background: rgba(60,40,25,.5); border: none; }
+.modal .sheet {
+  position: relative; z-index: 1; width: 100%; max-width: var(--col); margin: 0 auto;
+  background: #fff; border-radius: 28px 28px 0 0; padding: 14px 22px 26px;
+  box-shadow: 0 -12px 34px rgba(60,40,25,.22);
+  max-height: min(90vh, 720px); overflow-y: auto;
+  animation: sheetup .26s cubic-bezier(.22,.61,.36,1);
+}
+@keyframes sheetup { from { transform: translateY(28px); opacity: .4; } to { transform: none; opacity: 1; } }
+
+/* The grab handle dismisses the sheet; the padded wrapper gives it a real tap
+   target (the bar itself is only 42×5). */
+.grabhit { display: block; width: 100%; padding: 2px 0 16px; background: none; border: none; cursor: pointer; }
+.grab { width: 42px; height: 5px; border-radius: 3px; background: #dcd9d3; margin: 0 auto; }
+.grabhit:hover .grab, .grabhit:focus-visible .grab { background: #c2beb6; }
+
+/* Wide screens: a centred modal card rather than a sheet anchored to the bottom. */
+@media (min-width: 640px) {
+  .modal { justify-content: center; align-items: center; padding: 28px; }
+  .modal .sheet {
+    border-radius: 28px;
+    max-height: min(88vh, 720px);
+    box-shadow: 0 24px 60px rgba(60,40,25,.30);
+    animation: sheetpop .2s ease;
+  }
+  .grabhit { display: none; }
+}
+@keyframes sheetpop { from { transform: scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Blurred, non-interactive rate form behind the verify sheet (mock 04) */
+.ratebackdrop { filter: blur(2px); opacity: .5; pointer-events: none; user-select: none; }
+.tcval { font-weight: 700; font-size: 14px; }
+
+/* Verify (Singpass) sheet content */
 .sheettit { font-family: 'Fredoka', sans-serif; font-size: 21px; font-weight: 600; line-height: 1.15; margin-bottom: 7px; }
 .sheetsub { font-size: 13px; color: var(--mut); line-height: 1.5; margin-bottom: 18px; }
 .whyrow { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 15px; }

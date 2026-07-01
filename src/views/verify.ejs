@@ -1,13 +1,40 @@
 <% title = 'Verify with Singpass — RateMyTown.sg' %>
 
+<%# The verify step is a bottom-sheet modal (mock 04): the resident's rating is
+    shown dimmed and blurred behind, with the Singpass sheet slid up over it. %>
 <div class="appbar">
   <a class="iconbtn back" href="/rate?tc=<%= data.tc %>" aria-label="Back">‹</a>
   <div class="bartitle">Rate your town</div>
   <div style="width:34px"></div>
 </div>
 
-<div class="sheetwrap">
-  <div class="sheet">
+<div class="scroll ratebackdrop" aria-hidden="true">
+  <div class="field">
+    <div class="selectbox">
+      <div class="tcpick"><span class="pin"></span><span class="tcval"><%= tc.name %></span></div>
+      <span class="chev">▾</span>
+    </div>
+  </div>
+  <div class="field">
+    <span class="flab">Overall, how's living here?</span>
+    <div class="bigstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= data.overall ? ' sel' : '' %>">★</span><% } %></div>
+  </div>
+  <div class="field">
+    <span class="flab">Rate the specifics</span>
+    <% CATEGORIES.forEach(function(c){ %>
+      <div class="catrate">
+        <div class="crleft"><span class="crname"><%= c.label %></span></div>
+        <span class="crstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= (data.cats[c.key] || 0) ? ' sel' : '' %>">★</span><% } %></span>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<div class="modal">
+  <a class="modal-scrim" href="/rate?tc=<%= data.tc %>" aria-label="Close and go back"></a>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Verify with Singpass">
+    <a class="grabhit" href="/rate?tc=<%= data.tc %>" aria-label="Close and go back"><span class="grab"></span></a>
+
     <div class="sheettit">One last step — let's confirm you live here</div>
     <div class="sheetsub">Your review of <b><%= tc.name %></b> is ready. Before it goes live, we verify your residency with Singpass. Here's why it matters:</div>
 
@@ -49,4 +76,3 @@
     <div class="sheetnote">We never store your NRIC. It is hashed with a server-side secret the moment you verify, and only the hash is kept.</div>
   </div>
 </div>
-
