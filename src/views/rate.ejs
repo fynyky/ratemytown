@@ -8,7 +8,7 @@
   <div style="width:34px"></div>
 </div>
 
-<form method="post" action="/rate/verify" enctype="multipart/form-data">
+<form method="post" action="/rate/verify" enctype="multipart/form-data" data-rate-form>
   <div class="scroll" style="padding-top:8px">
 
     <% if (errors && errors.length) { %>
@@ -75,3 +75,4 @@
 </form>
 
 <%- include('partials/guide-sheet') %>
+<%- include('partials/verify-sheet') %>

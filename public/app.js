@@ -36,6 +36,121 @@
   });
 })();
 
+// Verify step (mock 04) as an in-page popup. Without JS the rate form posts to
+// /rate/verify, which renders the full verify.ejs page. With JS we post it in the
+// background, keep the draft in the session, and slide the verify sheet up over
+// the form — no navigation, so the browser back button never resurfaces it.
+(function () {
+  var form = document.querySelector('[data-rate-form]');
+  var modal = document.getElementById('verifyModal');
+  if (!form || !modal) return;
+
+  var scroll = form.querySelector('.scroll');
+  var tcEl = modal.querySelector('[data-verify-tc]');
+  var photosEl = modal.querySelector('[data-verify-photos]');
+  var errEl = modal.querySelector('[data-verify-error]');
+  var verifyForm = modal.querySelector('[data-verify-form]');
+
+  function open() {
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    var nric = verifyForm.querySelector('input[name="nric"]');
+    if (nric) nric.focus();
+  }
+  function close() {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  // Render server-side validation errors as the same .errors block the page uses.
+  function showFormErrors(msgs) {
+    var box = scroll.querySelector('.errors');
+    if (!box) {
+      box = document.createElement('div');
+      box.className = 'errors';
+      scroll.insertBefore(box, scroll.firstChild);
+    }
+    box.innerHTML = '<ul></ul>';
+    var ul = box.querySelector('ul');
+    msgs.forEach(function (m) {
+      var li = document.createElement('li');
+      li.textContent = m;
+      ul.appendChild(li);
+    });
+    box.scrollIntoView({ block: 'nearest' });
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
+
+    fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'X-Requested-With': 'fetch' },
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.d.ok) {
+          showFormErrors((res.d && res.d.errors) || ['Something went wrong. Please try again.']);
+          return;
+        }
+        var existing = scroll.querySelector('.errors');
+        if (existing) existing.remove();
+        if (tcEl && res.d.tc) tcEl.textContent = res.d.tc.name;
+        if (photosEl) {
+          var n = res.d.photoCount || 0;
+          photosEl.hidden = n === 0;
+          photosEl.textContent = n + ' photo' + (n === 1 ? '' : 's') + ' attached';
+        }
+        if (errEl) errEl.hidden = true;
+        open();
+      })
+      .catch(function () {
+        // Network trouble: fall back to the plain full-page verify flow.
+        form.submit();
+      })
+      .then(function () { if (btn) btn.disabled = false; });
+  });
+
+  // Submit the NRIC in the background too, so an invalid entry shows inline in the
+  // sheet rather than navigating away and re-rendering the whole page.
+  verifyForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = verifyForm.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
+
+    fetch(verifyForm.action, {
+      method: 'POST',
+      body: new URLSearchParams(new FormData(verifyForm)),
+      headers: { 'X-Requested-With': 'fetch' },
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (res.ok && res.d.ok && res.d.redirect) {
+          window.location = res.d.redirect;
+          return;
+        }
+        if (errEl) {
+          errEl.textContent = (res.d && res.d.error) || 'Something went wrong. Please try again.';
+          errEl.hidden = false;
+        }
+        if (btn) btn.disabled = false;
+      })
+      .catch(function () {
+        verifyForm.submit();
+      });
+  });
+
+  modal.querySelectorAll('[data-verify-close]').forEach(function (el) {
+    el.addEventListener('click', close);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !modal.hidden) close();
+  });
+})();
+
 // Centre the active sort chip in the scrollable chip row, so the current sort
 // is always visible even when it sits off the right edge on narrow screens.
 (function () {

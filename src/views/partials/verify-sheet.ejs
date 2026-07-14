@@ -1,0 +1,51 @@
+<%# Singpass verify step (mock 04) as an in-page bottom-sheet modal, opened over
+    the rate form once the ratings validate. app.js fetches /rate/verify, stashes
+    the draft, then reveals this sheet — no navigation, so the browser back button
+    never resurfaces it. Progressive enhancement: with JavaScript disabled the
+    rate form posts straight to /rate/verify, which renders the full verify.ejs
+    page instead. The dynamic bits (town name, photo count, errors) are filled in
+    by app.js from the fetch response. %>
+<div class="modal" id="verifyModal" hidden>
+  <button type="button" class="modal-scrim" data-verify-close aria-label="Close"></button>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Verify with Singpass">
+    <button type="button" class="grabhit" data-verify-close aria-label="Close"><span class="grab"></span></button>
+
+    <div class="sheettit">One last step — let's confirm you live here</div>
+    <div class="sheetsub">Your review of <b data-verify-tc>this town</b> is ready. Before it goes live, we verify your residency with Singpass. Here's why it matters:</div>
+
+    <div class="whyrow">
+      <div class="whyic">✓</div>
+      <div>
+        <div class="whytit">It keeps reviews real</div>
+        <div class="whytxt">Only people who actually live in the estate can post — so scores stay trustworthy and can't be gamed.</div>
+      </div>
+    </div>
+    <div class="whyrow">
+      <div class="whyic">✓</div>
+      <div>
+        <div class="whytit">Your review stays anonymous</div>
+        <div class="whytxt">We confirm you live here only at the moment you post. Your identity is never attached to your review or stored afterwards.</div>
+      </div>
+    </div>
+    <div class="whyrow">
+      <div class="whyic">✓</div>
+      <div>
+        <div class="whytit">One resident, one voice</div>
+        <div class="whytxt">Verification means no duplicate or fake reviews stacking the deck either way.</div>
+      </div>
+    </div>
+
+    <div class="errors" data-verify-error hidden style="margin:10px 0"></div>
+
+    <div class="nriclabel" data-verify-photos hidden></div>
+
+    <form method="post" action="/rate/submit" data-verify-form>
+      <%# The review draft is held in the Redis-backed session, not in the form. %>
+      <div class="nriclabel">Demo only — enter any valid NRIC/FIN to simulate Singpass (e.g. S1234567A)</div>
+      <input class="nricinput" name="nric" placeholder="S1234567A" autocomplete="off">
+
+      <button type="submit" class="spbtn"><span class="spd"></span> Verify with Singpass</button>
+    </form>
+    <div class="sheetnote">We never store your NRIC. It is hashed with a server-side secret the moment you verify, and only the hash is kept.</div>
+  </div>
+</div>

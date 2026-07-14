@@ -140,19 +140,26 @@ function clampStar(v) {
   return n >= 1 && n <= 5 ? n : 0;
 }
 
+// Requests from app.js carry this header; they get JSON so the verify step can
+// be shown as an in-page popup instead of navigating to its own URL.
+const isAjax = (req) => req.get('X-Requested-With') === 'fetch';
+
 // Step 1 -> 2: validate ratings, stash photos in the blobstore and the draft
-// in the session, then show the Singpass verify sheet (mock 04).
+// in the session, then show the Singpass verify sheet (mock 04). With JS this is
+// fetched and the sheet is opened as a popup; without JS it renders verify.ejs.
 app.post('/rate/verify', upload.array('photos', 4), async (req, res, next) => {
   try {
     const { errors, data } = parseReviewForm(req.body);
     const townCouncils = await db.listTownCouncils();
     const tc = townCouncils.find((t) => t.slug === data.tc);
     if (errors.length || !tc) {
+      const msgs = errors.length ? errors : ['That town council was not recognised.'];
+      if (isAjax(req)) return res.status(400).json({ ok: false, errors: msgs });
       return res.status(400).render('rate', {
         townCouncils,
         selected: data.tc,
         form: req.body,
-        errors: errors.length ? errors : ['That town council was not recognised.'],
+        errors: msgs,
       });
     }
 
@@ -164,6 +171,9 @@ app.post('/rate/verify', upload.array('photos', 4), async (req, res, next) => {
 
     // The draft lives in the Redis-backed session, not in hidden form fields.
     req.session.reviewDraft = { ...data, photoKeys };
+    if (isAjax(req)) {
+      return res.json({ ok: true, tc: { name: tc.name }, photoCount: photoKeys.length });
+    }
     res.render('verify', { data: req.session.reviewDraft, tc, error: null });
   } catch (err) {
     next(err);
@@ -185,10 +195,12 @@ app.post('/rate/submit', async (req, res, next) => {
     // store the raw value.
     const nric = req.body.nric;
     if (!isValidNric(nric)) {
+      const error = 'Please enter a valid NRIC/FIN (e.g. S1234567A) to simulate Singpass.';
+      if (isAjax(req)) return res.status(400).json({ ok: false, error });
       return res.status(400).render('verify', {
         data: draft,
         tc,
-        error: 'Please enter a valid NRIC/FIN (e.g. S1234567A) to simulate Singpass.',
+        error,
         nricValue: nric || '',
       });
     }
@@ -211,7 +223,27 @@ app.post('/rate/submit', async (req, res, next) => {
     delete req.session.reviewDraft;
     await invalidateLeaderboard(); // scores changed
 
-    res.render('success', { tc, overall: draft.overall, isNew });
+    // Post/Redirect/Get: the result is stashed one-shot in the session and shown
+    // by GET /rate/done, so reloading or going back never re-posts the review.
+    req.session.reviewResult = { tcSlug: tc.slug, overall: draft.overall, isNew };
+    if (isAjax(req)) return res.json({ ok: true, redirect: '/rate/done' });
+    res.redirect('/rate/done');
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Step 3: the success screen (mock 05), rendered from the one-shot result stashed
+// by /rate/submit so it survives the redirect but not a second visit.
+app.get('/rate/done', async (req, res, next) => {
+  try {
+    const result = req.session.reviewResult;
+    if (!result) return res.redirect('/rate');
+    delete req.session.reviewResult;
+
+    const tc = await db.getTownCouncilBySlug(result.tcSlug);
+    if (!tc) return res.redirect('/');
+    res.render('success', { tc, overall: result.overall, isNew: result.isNew });
   } catch (err) {
     next(err);
   }
