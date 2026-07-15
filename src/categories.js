@@ -37,7 +37,7 @@ export const CATEGORIES = [
     key: 'cleanliness',
     label: 'Cleanliness',
     short: 'Clean',
-    desc: 'Common areas — corridors, lifts, void decks, bin centres — and how well they’re kept.',
+    desc: 'How well common areas are kept — corridors, lifts, void decks, and bin centres.',
     scale: buildScale([
       'Corridors, lifts, void decks, and bin centres are consistently spotless and fresh.',
       'Common areas are clean most of the time, with only rare lapses.',

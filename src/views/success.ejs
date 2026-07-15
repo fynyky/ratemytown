@@ -4,8 +4,7 @@
   <div class="checkbadge"><span class="checkdisc">✓</span></div>
   <div class="successtit">Thank you for sharing</div>
   <div class="successsub">
-    Your review of <b><%= tc.name %></b> is now live and counts toward its rating.
-    <% if (!isNew) { %>We've updated your previous review for this town.<% } %>
+    <% if (isNew) { %>Your review of <b><%= tc.name %></b> is now live and counts toward its rating.<% } else { %>Your review of <b><%= tc.name %></b> has been updated — your latest experience replaces the earlier one.<% } %>
     Honest experiences like yours help town councils see what's working and where to improve.
   </div>
 
