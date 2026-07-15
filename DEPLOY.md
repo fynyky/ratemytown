@@ -1,5 +1,11 @@
 # Deploying RateMyTown.sg (Fly.io)
 
+> **Status:** live at **https://ratemytown.fly.dev** (custom domain
+> `demo.ratemytown.sg` pending DNS). Provisioned in `sin`:
+> app `ratemytown` (2 machines) · Postgres `ratemytown-db` · Redis
+> `ratemytown-cache` · Tigris bucket `ratemytown-uploads`. All secrets set.
+
+
 This app runs as one small Express container plus three managed backing
 services, all in Singapore (`sin`):
 
@@ -54,8 +60,11 @@ fly postgres attach ratemytown-db --app ratemytown   # sets DATABASE_URL secret
 
 ### 4. Provision Redis
 ```bash
-fly redis create --name ratemytown-cache --region sin   # prints a rediss:// URL
-fly secrets set --app ratemytown REDIS_URL="<the rediss:// URL from above>"
+# --enable-prodpack=false is required non-interactively: without it the CLI
+# blocks on a $200/mo ProdPack confirmation prompt that has no decline flag.
+fly redis create --name ratemytown-cache --org personal --region sin \
+  --enable-eviction --no-replicas --enable-prodpack=false   # prints a redis:// URL
+fly secrets set --app ratemytown REDIS_URL="<the redis:// URL from above>"
 ```
 
 ### 5. Provision object storage (Tigris)
@@ -94,17 +103,24 @@ fly ssh console --app ratemytown -C "node src/db/seed.js"   # 19 town councils +
 > you probably want the councils without the fake reviews — ask Claude to add a
 > councils-only seed before running this.
 
-### 9. Custom domain (you + Claude)
+### 9. Custom domain — `demo.ratemytown.sg` (you + Claude)
+The `demo.` subdomain deliberately signals the data is a demo, not real ratings.
 ```bash
-fly certs add ratemytown.sg     --app ratemytown
-fly certs add www.ratemytown.sg --app ratemytown
-fly certs show ratemytown.sg    --app ratemytown   # prints the exact DNS records
+fly certs add demo.ratemytown.sg --app ratemytown        # done — cert requested
+fly certs check demo.ratemytown.sg --app ratemytown       # validation progress
 ```
-**(you)** At your registrar, add the records `fly certs show` lists — typically:
-- `A` / `AAAA` on the apex `ratemytown.sg` → the Fly IPs (`fly ips list`)
-- `CNAME` on `www` → `ratemytown.fly.dev`
-
-TLS certs issue automatically once DNS resolves (usually minutes).
+**(you)** At your `ratemytown.sg` registrar, add **one** record. A subdomain
+CNAME is simplest and survives Fly IP changes:
+```
+CNAME   demo   →   ratemytown.fly.dev
+```
+Or, if you prefer explicit A/AAAA records (what `fly certs add` recommended):
+```
+A      demo   →   66.241.125.115
+AAAA   demo   →   2a09:8280:1::14d:e27f:0
+```
+The Let's Encrypt cert issues automatically once DNS resolves (usually minutes).
+Then https://demo.ratemytown.sg is live.
 
 ---
 
