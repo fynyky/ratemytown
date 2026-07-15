@@ -1,0 +1,39 @@
+# Fly.io deployment config for RateMyTown.sg.
+# Managed backing services (Postgres, Redis, Tigris object storage) are attached
+# separately and their connection strings arrive as secrets, not from this file.
+# See DEPLOY.md for the full provisioning runbook.
+app = "ratemytown"
+primary_region = "sin"  # Singapore — keep compute + data in-region
+
+[build]
+  # Uses the repo Dockerfile.
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080     # must match PORT / Dockerfile EXPOSE
+  force_https = true        # redirect http -> https at the edge
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1  # keep one warm; set to 0 to scale-to-zero and save cost
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  # DB-free liveness probe (see /healthz in src/server.js) so an unseeded
+  # first deploy still passes.
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/healthz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

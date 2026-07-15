@@ -22,6 +22,11 @@ import {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 
+// In production the app runs behind the platform's TLS-terminating proxy
+// (e.g. Fly's edge). Trusting it lets express-session see requests as https
+// and set the secure session cookie.
+if (config.isProduction) app.set('trust proxy', 1);
+
 // Photo uploads buffered in memory, then streamed to the blobstore.
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -55,6 +60,11 @@ app.get('/', async (req, res, next) => {
     next(err);
   }
 });
+
+// --- Health check ----------------------------------------------------------
+// Deliberately touches no backing service so the platform can mark a fresh
+// deploy healthy before the DB has been seeded. Liveness, not readiness.
+app.get('/healthz', (req, res) => res.type('text').send('ok'));
 
 // --- About (mock 07) -------------------------------------------------------
 app.get('/about', (req, res) => res.render('about'));
