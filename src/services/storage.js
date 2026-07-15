@@ -12,6 +12,7 @@ export const minio = new Client({
   useSSL: endpoint.protocol === 'https:',
   accessKey: config.s3.accessKey,
   secretKey: config.s3.secretKey,
+  region: config.s3.region,
 });
 
 const BUCKET = config.s3.bucket;
@@ -27,10 +28,16 @@ export function isAllowedImage(mime) {
   return Object.prototype.hasOwnProperty.call(EXT_BY_MIME, mime);
 }
 
-// Create the bucket on first boot if it doesn't exist.
+// Create the bucket on first boot if it doesn't exist. On managed stores
+// (Tigris) the bucket is usually pre-provisioned, so an already-exists response
+// is treated as success; only unexpected errors propagate.
 export async function ensureBucket() {
-  const exists = await minio.bucketExists(BUCKET).catch(() => false);
-  if (!exists) await minio.makeBucket(BUCKET);
+  try {
+    const exists = await minio.bucketExists(BUCKET);
+    if (!exists) await minio.makeBucket(BUCKET);
+  } catch (err) {
+    if (!/exist|owned/i.test(err.message || '')) throw err;
+  }
 }
 
 // Store a buffer under a random key; returns the object key.

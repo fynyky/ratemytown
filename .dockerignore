@@ -1,0 +1,11 @@
+# Keep the build context small and free of local/dev-only artifacts.
+node_modules
+.git
+.github
+.devcontainer
+.env
+.env.*
+!.env.example
+npm-debug.log
+*.log
+scratchpad

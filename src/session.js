@@ -15,6 +15,10 @@ export function sessionMiddleware() {
     cookie: {
       httpOnly: true,
       sameSite: 'lax',
+      // Behind the platform's TLS edge in production the cookie must be marked
+      // secure; requires `trust proxy` (set in server.js) so express-session
+      // sees the request as https.
+      secure: config.isProduction,
       maxAge: 1000 * 60 * 60 * 24, // 1 day
     },
   });
