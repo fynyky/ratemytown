@@ -118,7 +118,7 @@ function parseReviewForm(body) {
   const cats = {};
   for (const c of CATEGORIES) cats[c.key] = clampStar(body[c.key]);
 
-  if (!body.tc) errors.push('Please choose your town council.');
+  if (!body.tc) errors.push('Please choose your town.');
   if (!overall) errors.push('Please give an overall rating.');
   for (const c of CATEGORIES) {
     if (!cats[c.key]) errors.push(`Please rate ${c.label.toLowerCase()}.`);
@@ -152,7 +152,7 @@ app.post('/rate/verify', upload.array('photos', 4), async (req, res, next) => {
         townCouncils,
         selected: data.tc,
         form: req.body,
-        errors: errors.length ? errors : ['That town council was not recognised.'],
+        errors: errors.length ? errors : ['We couldn’t find that town council — please choose one from the list.'],
       });
     }
 
