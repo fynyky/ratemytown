@@ -221,8 +221,10 @@ app.post('/rate/submit', async (req, res, next) => {
 app.use((req, res) => res.status(404).render('notfound'));
 
 app.use((err, req, res, next) => {
+  // Log the real error for operators; show residents the generic message
+  // (error.ejs's fallback) rather than internal error text.
   console.error(err);
-  res.status(500).render('error', { message: err.message });
+  res.status(500).render('error', { message: null });
 });
 
 // --- Boot: connect services, then listen -----------------------------------
