@@ -21,6 +21,36 @@ repo, so every change is a reviewable diff and deploys with one command.
 
 ---
 
+## Dev container / Codespaces setup
+
+`flyctl` installs automatically — [`devcontainer.json`](.devcontainer/devcontainer.json)
+runs Fly's installer in `postCreateCommand` and puts `~/.fly/bin` on `PATH` via
+`remoteEnv`. So `fly` just works in any new Codespace or rebuild.
+
+**Auth does not come for free.** The binary is installed, but the credential
+(`~/.fly/config.yml`, written by `fly auth login`) lives in the container and is
+lost on every rebuild. Two options:
+
+- **One-off container:** run `fly auth login`; good until it's rebuilt.
+- **Every Codespace, zero touch (recommended):** store a Fly token as a
+  **Codespaces secret** named `FLY_API_TOKEN`. GitHub injects it as an env var
+  and `flyctl` reads it automatically — no login step, ever.
+
+Create a token scoped to just this app (run it in your own terminal so the value
+never lands in a chat log or a file):
+```bash
+fly tokens create deploy -a ratemytown -x 8760h   # deploy-only, 1 year
+```
+Then add it under **GitHub → repo Settings → Secrets and variables → Codespaces →
+New repository secret**, named `FLY_API_TOKEN`. (User-level also works:
+<https://github.com/settings/codespaces>.)
+
+> Scope matters: a **deploy** token can ship and roll back `ratemytown` but
+> *cannot* provision new infra — which is what makes it reasonable to leave in a
+> secret store. For provisioning (new DB, new app), use `fly auth login`, or an
+> org-wide token (`fly tokens create org -o personal`) if you accept the wider
+> blast radius.
+
 ## Who does what
 
 **You (needs your identity / payment / registrar):**

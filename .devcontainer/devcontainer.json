@@ -26,7 +26,14 @@
       "onAutoForward": "silent"
     }
   },
-  "postCreateCommand": "npm install && npm install -g @anthropic-ai/claude-code",
+  "postCreateCommand": "npm install && npm install -g @anthropic-ai/claude-code && curl -L https://fly.io/install.sh | sh",
+  // flyctl installs to ~/.fly; put it on PATH for every shell and process in the
+  // container (no ~/.bashrc patching needed). Auth comes from the FLY_API_TOKEN
+  // Codespaces secret if set — see DEPLOY.md.
+  "remoteEnv": {
+    "FLYCTL_INSTALL": "/home/node/.fly",
+    "PATH": "/home/node/.fly/bin:${containerEnv:PATH}"
+  },
   "customizations": {
     "vscode": {
       "extensions": [
