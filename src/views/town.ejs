@@ -29,24 +29,29 @@
           Not enough verified reviews yet — <%= tc.review_count %> so far. Scores appear once there are enough to be representative.
         </div>
       <% } else { %>
+        <% const overallRank = ranks.overall && ranks.overall[tc.id] %>
         <div style="display:flex;align-items:center;gap:9px;margin-top:8px">
           <span class="scorebig"><%= h.fmtScore(tc.overall) %></span>
           <%- include('partials/stars', { score: tc.overall, size: 17 }) %>
-          <span style="font-size:12px;color:var(--mut)">· <%= h.fmtCount(tc.review_count) %> reviews</span>
+          <span style="font-size:12px;color:var(--mut)">
+            <% if (overallRank) { %>#<%= overallRank.rank %> of <%= totalTcs %> · <% } %><%= h.fmtCount(tc.review_count) %> reviews
+          </span>
         </div>
       <% } %>
     </div>
 
     <% if (!tc.suppressed) { %>
       <div style="padding-top:16px">
-        <div class="catgrid">
+        <div class="catbars">
           <% CATEGORIES.forEach(function(c){
                const score = tc.scores[c.key];
-               const rk = ranks[c.key] && ranks[c.key][tc.id]; %>
-            <div class="catcell">
-              <div class="catcell-lab"><%= c.short %><a class="catgi" href="/guide?cat=<%= c.key %>" data-guide="<%= c.key %>">i</a></div>
-              <div class="catcell-val"><%= h.fmtScore(score) %></div>
-              <% if (rk) { %><div class="catcell-rank">#<%= rk.rank %></div><% } %>
+               // A rank is only meaningful where there is a score to rank.
+               const rk = score == null ? null : ranks[c.key] && ranks[c.key][tc.id]; %>
+            <div class="catbar">
+              <span class="catbar-lab"><%= c.label %><a class="catgi" href="/guide?cat=<%= c.key %>" data-guide="<%= c.key %>">i</a></span>
+              <span class="catbar-track"><span class="catbar-fill" style="width:<%= h.starPct(score) %>"></span></span>
+              <span class="catbar-val"><%= h.fmtScore(score) %></span>
+              <span class="catbar-rank<%= rk && rk.rank <= 3 ? ' top' : '' %>"><% if (rk) { %>#<%= rk.rank %><% } %></span>
             </div>
           <% }) %>
         </div>
@@ -81,7 +86,12 @@
             </span>
           </div>
           <% if (r.good_text) { %><div class="rvwb"><%= r.good_text %></div><% } %>
-          <% if (r.bad_text) { %><div class="rvwb"><%= r.bad_text %></div><% } %>
+          <% if (r.bad_text) { %>
+            <div class="rvwbad">
+              <div class="rvwbad-lab">Could be better</div>
+              <div class="rvwbad-txt"><%= r.bad_text %></div>
+            </div>
+          <% } %>
           <% if (r.photos && r.photos.length) { %>
             <div class="rvwphotos"><% r.photos.forEach(function(k){ %><img class="rvwphoto" src="/uploads/<%= k %>" alt="Resident photo" loading="lazy"><% }) %></div>
           <% } %>
