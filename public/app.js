@@ -6,13 +6,9 @@
   var panels = Array.prototype.slice.call(modal.querySelectorAll('.guidepanel'));
 
   function open(key) {
-    var found = false;
     panels.forEach(function (p) {
-      var match = p.dataset.cat === key;
-      p.hidden = !match;
-      if (match) found = true;
+      p.hidden = p.dataset.cat !== key;
     });
-    if (!found) return; // unknown category — let the link fall through to /guide
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
   }
@@ -23,6 +19,7 @@
 
   document.querySelectorAll('[data-guide]').forEach(function (el) {
     el.addEventListener('click', function (e) {
+      // Unknown category: let the link fall through to the full /guide page.
       if (!modal.querySelector('.guidepanel[data-cat="' + el.dataset.guide + '"]')) return;
       e.preventDefault();
       open(el.dataset.guide);

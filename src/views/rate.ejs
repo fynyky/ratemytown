@@ -2,11 +2,7 @@
 
 <% const f = form || {}; %>
 
-<div class="appbar">
-  <a class="iconbtn back" href="/" aria-label="Back">‹</a>
-  <div class="bartitle">Rate your town</div>
-  <div style="width:34px"></div>
-</div>
+<%- include('partials/appbar', { heading: 'Rate your town' }) %>
 
 <%# `data-star-words` carries the shared 1-5 vocabulary once for the whole form;
     app.js names the level you picked as you tap. %>

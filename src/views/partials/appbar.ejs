@@ -1,0 +1,8 @@
+<%# top bar with a back button and centred title. Params: `heading`, and an
+    optional `back` href (defaults to the leaderboard). The empty spacer
+    balances the back button so the title sits truly centred. %>
+<div class="appbar">
+  <a class="iconbtn back" href="<%= typeof back === 'undefined' ? '/' : back %>" aria-label="Back">‹</a>
+  <div class="bartitle"><%= heading %></div>
+  <div style="width:34px"></div>
+</div>
