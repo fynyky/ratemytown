@@ -11,28 +11,32 @@
 <div class="scroll ratebackdrop" aria-hidden="true">
   <div class="field">
     <div class="selectbox">
-      <div class="tcpick"><span class="pin"></span><span class="tcval"><%= tc.name %></span></div>
+      <span class="tcval"><%= tc.name %></span>
       <span class="chev">▾</span>
     </div>
   </div>
   <div class="field">
-    <span class="flab">Overall, how's living here?</span>
-    <div class="overallrate">
-      <div class="bigstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= data.overall ? ' sel' : '' %>">★</span><% } %></div>
-      <span class="starword"><%= STAR_WORDS[data.overall] || '' %></span>
+    <div class="cardfield">
+      <span class="flab">Overall, how's living here?</span>
+      <div class="overallrate">
+        <div class="bigstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= data.overall ? ' sel' : '' %>">★</span><% } %></div>
+        <span class="starword"><%= STAR_WORDS[data.overall] || '' %></span>
+      </div>
     </div>
   </div>
   <div class="field">
     <span class="flab">Rate the specifics <span class="opt">· optional</span></span>
-    <% CATEGORIES.forEach(function(c){ const v = data.cats[c.key] || 0; %>
-      <div class="catrate">
-        <div class="crhead">
-          <span class="crname"><%= c.label %></span>
-          <span class="starword"><%= STAR_WORDS[v] || '' %></span>
+    <div class="cardlist">
+      <% CATEGORIES.forEach(function(c){ const v = data.cats[c.key] || 0; %>
+        <div class="catrate">
+          <div class="crhead">
+            <span class="crname"><%= c.label %></span>
+            <span class="starword"><%= STAR_WORDS[v] || '' %></span>
+          </div>
+          <span class="crstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= v ? ' sel' : '' %>">★</span><% } %></span>
         </div>
-        <span class="crstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= v ? ' sel' : '' %>">★</span><% } %></span>
-      </div>
-    <% }) %>
+      <% }) %>
+    </div>
   </div>
 </div>
 

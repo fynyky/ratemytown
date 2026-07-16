@@ -21,39 +21,40 @@
 
     <div class="field">
       <div class="selectbox">
-        <div class="tcpick">
-          <span class="pin"></span>
-          <select name="tc" aria-label="Town council" required>
-            <option value="" disabled<%= selected ? '' : ' selected' %>>Choose your town</option>
-            <% townCouncils.forEach(function(t){ %>
-              <option value="<%= t.slug %>"<%= t.slug === selected ? ' selected' : '' %>><%= t.name %></option>
-            <% }) %>
-          </select>
-        </div>
+        <select name="tc" aria-label="Town council" required>
+          <option value="" disabled<%= selected ? '' : ' selected' %>>Choose your town…</option>
+          <% townCouncils.forEach(function(t){ %>
+            <option value="<%= t.slug %>"<%= t.slug === selected ? ' selected' : '' %>><%= t.name %></option>
+          <% }) %>
+        </select>
         <span class="chev">▾</span>
       </div>
     </div>
 
     <div class="field">
-      <span class="flab">Overall, how's living here?</span>
-      <div class="overallrate">
-        <%- include('partials/starinput', { name: 'overall', value: parseInt(f.overall) || 0, cls: 'bigstars' }) %>
-        <span class="starword" data-star-word-for="overall"><%= STAR_WORDS[parseInt(f.overall) || 0] %></span>
+      <div class="cardfield">
+        <span class="flab">Overall, how's living here?</span>
+        <div class="overallrate">
+          <%- include('partials/starinput', { name: 'overall', value: parseInt(f.overall) || 0, cls: 'bigstars' }) %>
+          <span class="starword" data-star-word-for="overall"><%= STAR_WORDS[parseInt(f.overall) || 0] %></span>
+        </div>
       </div>
     </div>
 
     <div class="field">
       <span class="flab">Rate the specifics <span class="opt">· optional — rate only what you know</span></span>
-      <% CATEGORIES.forEach(function(c){ const v = parseInt(f[c.key]) || 0; %>
-        <div class="catrate">
-          <div class="crhead">
-            <span class="crname"><%= c.label %><a class="infoic2" href="/guide?cat=<%= c.key %>" data-guide="<%= c.key %>">i</a></span>
-            <span class="starword" data-star-word-for="<%= c.key %>"><%= STAR_WORDS[v] %></span>
+      <div class="cardlist">
+        <% CATEGORIES.forEach(function(c){ const v = parseInt(f[c.key]) || 0; %>
+          <div class="catrate">
+            <div class="crhead">
+              <span class="crname"><%= c.label %><a class="infoic2" href="/guide?cat=<%= c.key %>" data-guide="<%= c.key %>">i</a></span>
+              <span class="starword" data-star-word-for="<%= c.key %>"><%= STAR_WORDS[v] %></span>
+            </div>
+            <span class="crdesc"><%= c.desc %></span>
+            <%- include('partials/starinput', { name: c.key, value: v, cls: 'crstars' }) %>
           </div>
-          <span class="crdesc"><%= c.desc %></span>
-          <%- include('partials/starinput', { name: c.key, value: v, cls: 'crstars' }) %>
-        </div>
-      <% }) %>
+        <% }) %>
+      </div>
     </div>
 
     <div class="field">
