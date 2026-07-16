@@ -35,6 +35,9 @@
       </a>
     <% } else { %>
       <% const rank = topBySort.get(r.id) %>
+      <%# The headline score is whichever metric is being ranked by, so the sort
+          re-emphasizes as well as re-orders. %>
+      <% const activeScore = sort === 'overall' ? r.overall : r.scores[sort] %>
       <a class="lbrow" href="/town/<%= r.slug %>">
         <div class="lbthumb" style="background-image:url(/towns/<%= r.slug %>.jpg)">
           <% if (rank) { %>
@@ -45,8 +48,11 @@
           <div class="lbtop">
             <div class="tcname"><%= r.name %></div>
             <div class="ovr">
-              <span class="ovrnum"><%= h.fmtScore(r.overall) %></span>
-              <%- include('partials/stars', { score: r.overall, size: 13 }) %>
+              <div class="ovrline">
+                <span class="ovrnum"><%= h.fmtScore(activeScore) %></span>
+                <%- include('partials/stars', { score: activeScore, size: 13 }) %>
+              </div>
+              <div class="ovrcount"><%= h.fmtCount(r.review_count) %> reviews</div>
             </div>
           </div>
           <div class="subs">

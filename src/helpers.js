@@ -1,9 +1,10 @@
 // Small view helpers shared across templates.
 
-// Returns an array of 5 booleans for filled stars given a 1-5 score.
-export function starArray(score) {
-  const rounded = Math.round(Number(score) || 0);
-  return [1, 2, 3, 4, 5].map((i) => i <= rounded);
+// How much of the five-star row to fill for a 1-5 score, as a CSS width.
+// Fractional rather than rounded: 4.6 and 4.4 should not both read as "4".
+export function starPct(score) {
+  const n = Number(score) || 0;
+  return `${((Math.min(Math.max(n, 0), 5) / 5) * 100).toFixed(1)}%`;
 }
 
 // Format an average score to one decimal, or null-safe dash.

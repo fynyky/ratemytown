@@ -1,2 +1,3 @@
-<%# renders 5 static stars given `score` (and optional `size` px) %>
-<span class="stars"<% if (typeof size !== 'undefined') { %> style="font-size:<%= size %>px"<% } %>><% h.starArray(score).forEach(function(on){ %><span class="star<%= on ? ' on' : '' %>">★</span><% }) %></span>
+<%# renders a fractional 5-star row given `score` (and optional `size` px).
+    Two layers: a grey row, with an amber copy clipped to the score's width. %>
+<span class="stars"<% if (typeof size !== 'undefined') { %> style="font-size:<%= size %>px"<% } %> role="img" aria-label="<%= score == null ? 'Not rated yet' : h.fmtScore(score) + ' out of 5' %>">★★★★★<span class="starsfill" style="width:<%= h.starPct(score) %>">★★★★★</span></span>

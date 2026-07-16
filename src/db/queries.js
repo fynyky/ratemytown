@@ -1,21 +1,36 @@
 import { query } from './pool.js';
 import { CATEGORY_KEYS, MIN_REVIEWS_FOR_SCORE } from '../categories.js';
 
+// A category score only counts once enough residents have rated that specific
+// category. `overall` is required of every review, so the row's review_count
+// gates it (see `decorate`); the specifics are optional, so each needs its own
+// count — otherwise one resident rating one category would produce a headline
+// score and a podium rank off a single opinion (PRD §9.4).
+// COUNT(col) ignores NULLs, and a CASE with no ELSE yields NULL, which every
+// caller already renders as "not rated yet".
+const scoreExpr = (key) =>
+  key === 'overall'
+    ? 'AVG(r.overall)'
+    : `CASE WHEN COUNT(r.${key}) >= ${MIN_REVIEWS_FOR_SCORE} THEN AVG(r.${key}) END`;
+
 // SQL fragment: average of each rating column + count, for a town council.
 const AVG_COLUMNS = [
   'COUNT(r.id)::int AS review_count',
-  'AVG(r.overall)::numeric(10,4) AS overall',
-  ...CATEGORY_KEYS.map((k) => `AVG(r.${k})::numeric(10,4) AS ${k}`),
+  `${scoreExpr('overall')}::numeric(10,4) AS overall`,
+  ...CATEGORY_KEYS.map((k) => `${scoreExpr(k)}::numeric(10,4) AS ${k}`),
 ].join(', ');
 
 // Sort key -> aggregate expression for the leaderboard (overall + each category).
+// Same expression as the display, so a score can never sort above the rows it is
+// not even shown against.
 const SORT_EXPR = Object.fromEntries(
-  ['overall', ...CATEGORY_KEYS].map((k) => [k, `AVG(r.${k})`])
+  ['overall', ...CATEGORY_KEYS].map((k) => [k, scoreExpr(k)])
 );
 
 export const SORT_KEYS = Object.keys(SORT_EXPR);
 
-// Leaderboard: every TC with its aggregate scores, ordered by `sort`.
+// Leaderboard: every TC with its aggregate scores, ordered by `sort`. Equal
+// scores are broken by review count, so the better-evidenced TC ranks higher.
 // TCs with too few reviews are returned but flagged `suppressed`.
 export async function getLeaderboard(sort = 'overall') {
   const expr = SORT_EXPR[sort] || SORT_EXPR.overall;
@@ -26,18 +41,19 @@ export async function getLeaderboard(sort = 'overall') {
       GROUP BY tc.id
       ORDER BY (COUNT(r.id) >= ${MIN_REVIEWS_FOR_SCORE}) DESC,
                ${expr} DESC NULLS LAST,
+               COUNT(r.id) DESC,
                tc.name ASC`
   );
   return rows.map(decorate);
 }
 
-// Per-category rank of a town council among all TCs (1 = best).
+// Rank of a town council among all TCs (1 = best), overall and per category.
 export async function getCategoryRanks() {
   const ranks = {};
-  for (const key of CATEGORY_KEYS) {
+  for (const key of ['overall', ...CATEGORY_KEYS]) {
     const { rows } = await query(
       `SELECT tc.id,
-              RANK() OVER (ORDER BY AVG(r.${key}) DESC NULLS LAST) AS rnk
+              RANK() OVER (ORDER BY ${scoreExpr(key)} DESC NULLS LAST) AS rnk
          FROM town_councils tc
          LEFT JOIN reviews r ON r.town_council_id = tc.id
         GROUP BY tc.id`
@@ -141,11 +157,11 @@ export async function upsertReview(review) {
       townCouncilId,
       residentId,
       overall,
-      cats.service,
-      cats.cleanliness,
-      cats.maintenance,
-      cats.pest_control,
-      cats.environment,
+      cats.service ?? null,
+      cats.cleanliness ?? null,
+      cats.maintenance ?? null,
+      cats.pest_control ?? null,
+      cats.environment ?? null,
       goodText || null,
       badText || null,
     ]
