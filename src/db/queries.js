@@ -47,19 +47,23 @@ export async function getLeaderboard(sort = 'overall') {
   return rows.map(decorate);
 }
 
-// Rank of a town council among all TCs (1 = best), overall and per category.
+// Rank of every town council (1 = best), overall and per category, as
+// ranks[key][tcId] = rank. Window functions run after GROUP BY, so all six
+// rankings come out of a single aggregate pass.
 export async function getCategoryRanks() {
-  const ranks = {};
-  for (const key of ['overall', ...CATEGORY_KEYS]) {
-    const { rows } = await query(
-      `SELECT tc.id,
-              RANK() OVER (ORDER BY ${scoreExpr(key)} DESC NULLS LAST) AS rnk
-         FROM town_councils tc
-         LEFT JOIN reviews r ON r.town_council_id = tc.id
-        GROUP BY tc.id`
-    );
-    ranks[key] = {};
-    for (const row of rows) ranks[key][row.id] = { rank: row.rnk };
+  const keys = ['overall', ...CATEGORY_KEYS];
+  const rankColumns = keys
+    .map((k) => `RANK() OVER (ORDER BY ${scoreExpr(k)} DESC NULLS LAST)::int AS ${k}`)
+    .join(', ');
+  const { rows } = await query(
+    `SELECT tc.id, ${rankColumns}
+       FROM town_councils tc
+       LEFT JOIN reviews r ON r.town_council_id = tc.id
+      GROUP BY tc.id`
+  );
+  const ranks = Object.fromEntries(keys.map((k) => [k, {}]));
+  for (const row of rows) {
+    for (const k of keys) ranks[k][row.id] = row[k];
   }
   return ranks;
 }
@@ -108,12 +112,11 @@ export async function getRecentReviews(townCouncilId, limit = 8) {
 // Replace a review's photos with a new set of object keys.
 export async function setReviewPhotos(reviewId, keys) {
   await query(`DELETE FROM review_photos WHERE review_id = $1`, [reviewId]);
-  for (const key of keys) {
-    await query(
-      `INSERT INTO review_photos (review_id, object_key) VALUES ($1, $2)`,
-      [reviewId, key]
-    );
-  }
+  await query(
+    `INSERT INTO review_photos (review_id, object_key)
+     SELECT $1, unnest($2::text[])`,
+    [reviewId, keys]
+  );
 }
 
 export async function listTownCouncils() {

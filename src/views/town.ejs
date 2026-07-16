@@ -2,8 +2,8 @@
 
 <%
   const heroReview = reviews.find(function(r){ return r.good_text; });
-  // Every category rank map covers all town councils, so any one gives the total.
-  const totalTcs = Object.keys(ranks[CATEGORIES[0].key] || {}).length;
+  // The rank map covers every town council, so its size is the total.
+  const totalTcs = Object.keys(ranks.overall).length;
 %>
 
 <div class="scroll" style="padding:0">
@@ -28,12 +28,12 @@
           Not enough verified reviews yet — <%= tc.review_count %> so far. Scores appear once there are enough to be representative.
         </div>
       <% } else { %>
-        <% const overallRank = ranks.overall && ranks.overall[tc.id] %>
+        <% const overallRank = ranks.overall[tc.id] %>
         <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
           <span class="scorebig"><%= h.fmtScore(tc.overall) %></span>
           <%- include('partials/stars', { score: tc.overall, size: 16 }) %>
           <span style="font-size:13px;color:var(--mut)">
-            <% if (overallRank) { %>#<%= overallRank.rank %> of <%= totalTcs %> · <% } %><%= h.fmtCount(tc.review_count) %> reviews
+            <% if (overallRank) { %>#<%= overallRank %> of <%= totalTcs %> · <% } %><%= h.fmtCount(tc.review_count) %> reviews
           </span>
         </div>
       <% } %>
@@ -45,12 +45,12 @@
           <% CATEGORIES.forEach(function(c){
                const score = tc.scores[c.key];
                // A rank is only meaningful where there is a score to rank.
-               const rk = score == null ? null : ranks[c.key] && ranks[c.key][tc.id]; %>
+               const rk = score == null ? null : ranks[c.key][tc.id]; %>
             <div class="catbar">
               <span class="catbar-lab"><%= c.label %><a class="catgi" href="/guide?cat=<%= c.key %>" data-guide="<%= c.key %>">i</a></span>
               <span class="catbar-track"><span class="catbar-fill" style="width:<%= h.starPct(score) %>"></span></span>
               <span class="catbar-val"><%= h.fmtScore(score) %></span>
-              <span class="catbar-rank<%= rk && rk.rank <= 3 ? ' top' : '' %>"><% if (rk) { %>#<%= rk.rank %><% } %></span>
+              <span class="catbar-rank<%= rk && rk <= 3 ? ' top' : '' %>"><% if (rk) { %>#<%= rk %><% } %></span>
             </div>
           <% }) %>
         </div>

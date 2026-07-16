@@ -28,10 +28,8 @@ export async function cacheSet(key, value, ttlSeconds) {
   }
 }
 
-// Drop every cached leaderboard variant (called when reviews change).
-export async function invalidateLeaderboard() {
+export async function cacheDel(keys) {
   try {
-    const keys = await redis.keys('lb:*');
     if (keys.length) await redis.del(keys);
   } catch {
     /* ignore */

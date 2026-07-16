@@ -2,11 +2,7 @@
 
 <%# The verify step is a bottom-sheet modal (mock 04): the resident's rating is
     shown dimmed and blurred behind, with the Singpass sheet slid up over it. %>
-<div class="appbar">
-  <a class="iconbtn back" href="/rate?tc=<%= data.tc %>" aria-label="Back">‹</a>
-  <div class="bartitle">Rate your town</div>
-  <div style="width:34px"></div>
-</div>
+<%- include('partials/appbar', { heading: 'Rate your town', back: '/rate?tc=' + data.tc }) %>
 
 <div class="scroll ratebackdrop" aria-hidden="true">
   <div class="field">
@@ -79,7 +75,7 @@
     <form method="post" action="/rate/submit">
       <%# Review data is held in the Redis-backed session draft, not in the form. %>
       <div class="nriclabel">Demo only — enter any valid NRIC/FIN to simulate Singpass (e.g. S1234567A)</div>
-      <input class="nricinput" name="nric" placeholder="S1234567A" autocomplete="off" value="<%= typeof nricValue !== 'undefined' ? nricValue : '' %>">
+      <input class="nricinput" name="nric" placeholder="S1234567A" autocomplete="off" value="<%= nricValue %>">
 
       <button type="submit" class="spbtn"><span class="spd"></span> Verify with Singpass</button>
     </form>
