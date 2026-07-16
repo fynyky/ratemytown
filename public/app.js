@@ -106,7 +106,6 @@ document.querySelectorAll('[data-starinput]').forEach(function (group) {
 
   stars.forEach(function (star) {
     var val = parseInt(star.dataset.val, 10);
-    star.style.cursor = 'pointer';
     star.addEventListener('click', function () { select(val, false); });
     star.addEventListener('mouseenter', function () { paint(val); });
     star.addEventListener('keydown', function (e) {
