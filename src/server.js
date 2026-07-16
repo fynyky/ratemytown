@@ -5,12 +5,12 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { config } from './config.js';
-import { CATEGORIES, CATEGORY_KEYS } from './categories.js';
+import { CATEGORIES, CATEGORY_KEYS, STAR_WORDS } from './categories.js';
 import * as db from './db/queries.js';
 import { hashNric, isValidNric } from './identity.js';
 import * as h from './helpers.js';
 import { sessionMiddleware } from './session.js';
-import { connectRedis, cacheGet, cacheSet, invalidateLeaderboard } from './services/redis.js';
+import { connectRedis, cacheGet, cacheSet, cacheDel } from './services/redis.js';
 import {
   ensureBucket,
   putImage,
@@ -43,13 +43,16 @@ app.use(express.static(join(__dirname, '..', 'public')));
 app.use(sessionMiddleware());
 
 app.locals.CATEGORIES = CATEGORIES;
+app.locals.STAR_WORDS = STAR_WORDS;
 app.locals.h = h;
 
 // --- Leaderboard / landing (mock 01) — cached in Redis ---------------------
+const leaderboardCacheKey = (sort) => `lb:${sort}`;
+
 app.get('/', async (req, res, next) => {
   try {
     const sort = db.SORT_KEYS.includes(req.query.sort) ? req.query.sort : 'overall';
-    const cacheKey = `lb:${sort}`;
+    const cacheKey = leaderboardCacheKey(sort);
     let leaderboard = await cacheGet(cacheKey);
     if (!leaderboard) {
       leaderboard = await db.getLeaderboard(sort);
@@ -125,14 +128,12 @@ app.get('/rate', async (req, res, next) => {
 function parseReviewForm(body) {
   const errors = [];
   const overall = clampStar(body.overall);
+  // Specifics are optional — an unrated category is null ("didn't say"), not 0.
   const cats = {};
-  for (const c of CATEGORIES) cats[c.key] = clampStar(body[c.key]);
+  for (const c of CATEGORIES) cats[c.key] = clampStar(body[c.key]) || null;
 
   if (!body.tc) errors.push('Please choose your town.');
   if (!overall) errors.push('Please give an overall rating.');
-  for (const c of CATEGORIES) {
-    if (!cats[c.key]) errors.push(`Please rate ${c.label.toLowerCase()}.`);
-  }
   return {
     errors,
     data: {
@@ -174,7 +175,7 @@ app.post('/rate/verify', upload.array('photos', 4), async (req, res, next) => {
 
     // The draft lives in the Redis-backed session, not in hidden form fields.
     req.session.reviewDraft = { ...data, photoKeys };
-    res.render('verify', { data: req.session.reviewDraft, tc, error: null });
+    res.render('verify', { data: req.session.reviewDraft, tc, error: null, nricValue: '' });
   } catch (err) {
     next(err);
   }
@@ -219,7 +220,7 @@ app.post('/rate/submit', async (req, res, next) => {
     }
 
     delete req.session.reviewDraft;
-    await invalidateLeaderboard(); // scores changed
+    await cacheDel(db.SORT_KEYS.map(leaderboardCacheKey)); // scores changed
 
     res.render('success', { tc, overall: draft.overall, isNew });
   } catch (err) {

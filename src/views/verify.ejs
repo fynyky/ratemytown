@@ -2,31 +2,37 @@
 
 <%# The verify step is a bottom-sheet modal (mock 04): the resident's rating is
     shown dimmed and blurred behind, with the Singpass sheet slid up over it. %>
-<div class="appbar">
-  <a class="iconbtn back" href="/rate?tc=<%= data.tc %>" aria-label="Back">‹</a>
-  <div class="bartitle">Rate your town</div>
-  <div style="width:34px"></div>
-</div>
+<%- include('partials/appbar', { heading: 'Rate your town', back: '/rate?tc=' + data.tc }) %>
 
 <div class="scroll ratebackdrop" aria-hidden="true">
   <div class="field">
     <div class="selectbox">
-      <div class="tcpick"><span class="pin"></span><span class="tcval"><%= tc.name %></span></div>
+      <span class="tcval"><%= tc.name %></span>
       <span class="chev">▾</span>
     </div>
   </div>
   <div class="field">
-    <span class="flab">Overall, how's living here?</span>
-    <div class="bigstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= data.overall ? ' sel' : '' %>">★</span><% } %></div>
+    <div class="cardfield">
+      <span class="flab">Overall, how's living here?</span>
+      <div class="overallrate">
+        <div class="bigstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= data.overall ? ' sel' : '' %>">★</span><% } %></div>
+        <span class="starword"><%= STAR_WORDS[data.overall] || '' %></span>
+      </div>
+    </div>
   </div>
   <div class="field">
-    <span class="flab">Rate the specifics</span>
-    <% CATEGORIES.forEach(function(c){ %>
-      <div class="catrate">
-        <div class="crleft"><span class="crname"><%= c.label %></span></div>
-        <span class="crstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= (data.cats[c.key] || 0) ? ' sel' : '' %>">★</span><% } %></span>
-      </div>
-    <% }) %>
+    <span class="flab">Rate the specifics <span class="opt">· optional</span></span>
+    <div class="cardlist">
+      <% CATEGORIES.forEach(function(c){ const v = data.cats[c.key] || 0; %>
+        <div class="catrate">
+          <div class="crhead">
+            <span class="crname"><%= c.label %></span>
+            <span class="starword"><%= STAR_WORDS[v] || '' %></span>
+          </div>
+          <span class="crstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= v ? ' sel' : '' %>">★</span><% } %></span>
+        </div>
+      <% }) %>
+    </div>
   </div>
 </div>
 
@@ -69,7 +75,7 @@
     <form method="post" action="/rate/submit">
       <%# Review data is held in the Redis-backed session draft, not in the form. %>
       <div class="nriclabel">Demo only — enter any valid NRIC/FIN to simulate Singpass (e.g. S1234567A)</div>
-      <input class="nricinput" name="nric" placeholder="S1234567A" autocomplete="off" value="<%= typeof nricValue !== 'undefined' ? nricValue : '' %>">
+      <input class="nricinput" name="nric" placeholder="S1234567A" autocomplete="off" value="<%= nricValue %>">
 
       <button type="submit" class="spbtn"><span class="spd"></span> Verify with Singpass</button>
     </form>

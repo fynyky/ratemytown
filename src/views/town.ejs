@@ -2,19 +2,18 @@
 
 <%
   const heroReview = reviews.find(function(r){ return r.good_text; });
-  // Every category rank map covers all town councils, so any one gives the total.
-  const totalTcs = Object.keys(ranks[CATEGORIES[0].key] || {}).length;
+  // The rank map covers every town council, so its size is the total.
+  const totalTcs = Object.keys(ranks.overall).length;
 %>
 
 <div class="scroll" style="padding:0">
   <div class="hero">
     <div class="tilephoto" style="background-image:url(/towns/<%= tc.slug %>.jpg)"></div>
-    <div class="tilefade"></div>
     <a class="iconbtn back" href="/" aria-label="Back">‹</a>
     <% if (heroReview) { %>
       <div class="heroquote">
         <div class="q">“<%= heroReview.good_text %>”</div>
-        <div class="by">From a verified resident</div>
+        <div class="by">From a verified resident review</div>
       </div>
     <% } %>
   </div>
@@ -23,30 +22,35 @@
   <div class="townbody">
     <div style="padding-top:16px">
       <div class="parea"><%= tc.area %></div>
-      <div class="tcnamed" style="font-size:22px"><%= tc.name %></div>
+      <div class="tcnamed" style="font-size:28px"><%= tc.name %></div>
       <% if (tc.suppressed) { %>
         <div class="norating" style="margin-top:8px">
           Not enough verified reviews yet — <%= tc.review_count %> so far. Scores appear once there are enough to be representative.
         </div>
       <% } else { %>
-        <div style="display:flex;align-items:center;gap:9px;margin-top:8px">
+        <% const overallRank = ranks.overall[tc.id] %>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
           <span class="scorebig"><%= h.fmtScore(tc.overall) %></span>
-          <%- include('partials/stars', { score: tc.overall, size: 17 }) %>
-          <span style="font-size:12px;color:var(--mut)">· <%= h.fmtCount(tc.review_count) %> reviews</span>
+          <%- include('partials/stars', { score: tc.overall, size: 16 }) %>
+          <span style="font-size:13px;color:var(--mut)">
+            <% if (overallRank) { %>#<%= overallRank %> of <%= totalTcs %> · <% } %><%= h.fmtCount(tc.review_count) %> reviews
+          </span>
         </div>
       <% } %>
     </div>
 
     <% if (!tc.suppressed) { %>
       <div style="padding-top:16px">
-        <div class="catgrid">
+        <div class="catbars">
           <% CATEGORIES.forEach(function(c){
                const score = tc.scores[c.key];
-               const rk = ranks[c.key] && ranks[c.key][tc.id]; %>
-            <div class="catcell">
-              <div class="catcell-lab"><%= c.short %><a class="catgi" href="/guide?cat=<%= c.key %>" data-guide="<%= c.key %>">i</a></div>
-              <div class="catcell-val"><%= h.fmtScore(score) %></div>
-              <% if (rk) { %><div class="catcell-rank">#<%= rk.rank %></div><% } %>
+               // A rank is only meaningful where there is a score to rank.
+               const rk = score == null ? null : ranks[c.key][tc.id]; %>
+            <div class="catbar">
+              <span class="catbar-lab"><%= c.label %><a class="catgi" href="/guide?cat=<%= c.key %>" data-guide="<%= c.key %>">i</a></span>
+              <span class="catbar-track"><span class="catbar-fill" style="width:<%= h.starPct(score) %>"></span></span>
+              <span class="catbar-val"><%= h.fmtScore(score) %></span>
+              <span class="catbar-rank<%= rk && rk <= 3 ? ' top' : '' %>"><% if (rk) { %>#<%= rk %><% } %></span>
             </div>
           <% }) %>
         </div>
@@ -60,9 +64,9 @@
     <% } %>
 
     <div style="padding:8px 0 24px">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0 4px;border-top:1px solid #ece6da">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;padding:8px 0 10px">
         <div class="sectit" style="margin:0">Resident reviews</div>
-        <div style="font-size:11.5px;color:var(--green);font-weight:600">Most recent</div>
+        <div class="sortlab">Most recent ▾</div>
       </div>
 
       <% if (reviews.length === 0) { %>
@@ -73,15 +77,17 @@
            const tags = h.reviewTags(r, CATEGORIES); %>
         <div class="rvw">
           <div class="rvwh">
-            <%- include('partials/stars', { score: r.overall, size: 14 }) %>
-            <span class="rvwmeta">
-              <span class="vchip">Verified</span>
-              <span class="vdot">·</span>
-              <span class="rvwt"><%= h.timeAgo(r.created_at) %></span>
-            </span>
+            <%- include('partials/stars', { score: r.overall, size: 13 }) %>
+            <span class="vchip">Verified</span>
+            <span class="rvwt"><%= h.timeAgo(r.created_at) %></span>
           </div>
           <% if (r.good_text) { %><div class="rvwb"><%= r.good_text %></div><% } %>
-          <% if (r.bad_text) { %><div class="rvwb"><%= r.bad_text %></div><% } %>
+          <% if (r.bad_text) { %>
+            <div class="rvwbad">
+              <div class="rvwbad-lab">Could be better</div>
+              <div class="rvwbad-txt"><%= r.bad_text %></div>
+            </div>
+          <% } %>
           <% if (r.photos && r.photos.length) { %>
             <div class="rvwphotos"><% r.photos.forEach(function(k){ %><img class="rvwphoto" src="/uploads/<%= k %>" alt="Resident photo" loading="lazy"><% }) %></div>
           <% } %>
@@ -91,7 +97,7 @@
         </div>
       <% }) %>
 
-      <a class="btnf" style="margin-top:18px" href="/rate?tc=<%= tc.slug %>">Rate <%= tc.name %></a>
+      <a class="btnf" style="margin-top:16px" href="/rate?tc=<%= tc.slug %>">★&nbsp; Rate <%= tc.name %></a>
     </div>
   </div>
 </div>

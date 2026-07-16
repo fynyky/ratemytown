@@ -31,12 +31,16 @@ CREATE TABLE reviews (
   id              SERIAL PRIMARY KEY,
   town_council_id INTEGER NOT NULL REFERENCES town_councils(id) ON DELETE CASCADE,
   resident_id     INTEGER NOT NULL REFERENCES residents(id) ON DELETE CASCADE,
+  -- Only the overall rating is required. The specific categories are nullable:
+  -- residents rate only what they know, and NULL means "didn't say" rather than
+  -- a low score. AVG() skips NULLs, so a category's average reflects exactly
+  -- the people who rated it (PRD §9.1).
   overall         SMALLINT NOT NULL CHECK (overall BETWEEN 1 AND 5),
-  service         SMALLINT NOT NULL CHECK (service BETWEEN 1 AND 5),
-  cleanliness     SMALLINT NOT NULL CHECK (cleanliness BETWEEN 1 AND 5),
-  maintenance     SMALLINT NOT NULL CHECK (maintenance BETWEEN 1 AND 5),
-  pest_control    SMALLINT NOT NULL CHECK (pest_control BETWEEN 1 AND 5),
-  environment     SMALLINT NOT NULL CHECK (environment BETWEEN 1 AND 5),
+  service         SMALLINT CHECK (service BETWEEN 1 AND 5),
+  cleanliness     SMALLINT CHECK (cleanliness BETWEEN 1 AND 5),
+  maintenance     SMALLINT CHECK (maintenance BETWEEN 1 AND 5),
+  pest_control    SMALLINT CHECK (pest_control BETWEEN 1 AND 5),
+  environment     SMALLINT CHECK (environment BETWEEN 1 AND 5),
   good_text       TEXT,
   bad_text        TEXT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
