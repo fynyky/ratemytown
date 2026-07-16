@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { config } from './config.js';
-import { CATEGORIES, CATEGORY_KEYS } from './categories.js';
+import { CATEGORIES, CATEGORY_KEYS, STAR_WORDS } from './categories.js';
 import * as db from './db/queries.js';
 import { hashNric, isValidNric } from './identity.js';
 import * as h from './helpers.js';
@@ -43,6 +43,7 @@ app.use(express.static(join(__dirname, '..', 'public')));
 app.use(sessionMiddleware());
 
 app.locals.CATEGORIES = CATEGORIES;
+app.locals.STAR_WORDS = STAR_WORDS;
 app.locals.h = h;
 
 // --- Leaderboard / landing (mock 01) — cached in Redis ---------------------
@@ -125,14 +126,12 @@ app.get('/rate', async (req, res, next) => {
 function parseReviewForm(body) {
   const errors = [];
   const overall = clampStar(body.overall);
+  // Specifics are optional — an unrated category is null ("didn't say"), not 0.
   const cats = {};
-  for (const c of CATEGORIES) cats[c.key] = clampStar(body[c.key]);
+  for (const c of CATEGORIES) cats[c.key] = clampStar(body[c.key]) || null;
 
   if (!body.tc) errors.push('Please choose your town.');
   if (!overall) errors.push('Please give an overall rating.');
-  for (const c of CATEGORIES) {
-    if (!cats[c.key]) errors.push(`Please rate ${c.label.toLowerCase()}.`);
-  }
   return {
     errors,
     data: {

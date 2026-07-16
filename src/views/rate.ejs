@@ -8,7 +8,9 @@
   <div style="width:34px"></div>
 </div>
 
-<form method="post" action="/rate/verify" enctype="multipart/form-data">
+<%# `data-star-words` carries the shared 1-5 vocabulary once for the whole form;
+    app.js names the level you picked as you tap. %>
+<form method="post" action="/rate/verify" enctype="multipart/form-data" data-rateform data-star-words='<%= JSON.stringify(STAR_WORDS) %>'>
   <div class="scroll" style="padding-top:8px">
 
     <% if (errors && errors.length) { %>
@@ -34,18 +36,22 @@
 
     <div class="field">
       <span class="flab">Overall, how's living here?</span>
-      <%- include('partials/starinput', { name: 'overall', value: parseInt(f.overall) || 0, cls: 'bigstars' }) %>
+      <div class="overallrate">
+        <%- include('partials/starinput', { name: 'overall', value: parseInt(f.overall) || 0, cls: 'bigstars' }) %>
+        <span class="starword" data-star-word-for="overall"><%= STAR_WORDS[parseInt(f.overall) || 0] %></span>
+      </div>
     </div>
 
     <div class="field">
-      <span class="flab">Rate the specifics</span>
-      <% CATEGORIES.forEach(function(c){ %>
+      <span class="flab">Rate the specifics <span class="opt">· optional — rate only what you know</span></span>
+      <% CATEGORIES.forEach(function(c){ const v = parseInt(f[c.key]) || 0; %>
         <div class="catrate">
-          <div class="crleft">
+          <div class="crhead">
             <span class="crname"><%= c.label %><a class="infoic2" href="/guide?cat=<%= c.key %>" data-guide="<%= c.key %>">i</a></span>
-            <span class="crdesc"><%= c.desc %></span>
+            <span class="starword" data-star-word-for="<%= c.key %>"><%= STAR_WORDS[v] %></span>
           </div>
-          <%- include('partials/starinput', { name: c.key, value: parseInt(f[c.key]) || 0, cls: 'crstars' }) %>
+          <span class="crdesc"><%= c.desc %></span>
+          <%- include('partials/starinput', { name: c.key, value: v, cls: 'crstars' }) %>
         </div>
       <% }) %>
     </div>
@@ -66,11 +72,13 @@
     </div>
 
     <div class="cardnote">
-      <span class="lk"></span>
-      <span>Your review is anonymous. We check that you live here when you submit, and never store who you are.</span>
+      <span class="ok">✓</span>
+      <span><b>Anonymous, but verified.</b> Residency is confirmed via Singpass when you submit — your identity is never stored with the review.</span>
     </div>
 
-    <button type="submit" class="btnf" style="margin-top:18px">Submit review</button>
+    <%# Enabled by default so the form still submits without JS (the server
+        validates town + overall either way); app.js gates it and says why. %>
+    <button type="submit" class="btnf" style="margin-top:18px" data-submit-gate>Submit review</button>
   </div>
 </form>
 

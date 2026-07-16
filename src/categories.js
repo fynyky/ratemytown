@@ -8,6 +8,14 @@ const SCALE_LABELS = [
   [1, 'Very poor'],
 ];
 
+// The word for each star, indexed by rating: STAR_WORDS[4] === 'Good'.
+// Index 0 is the empty "not rated yet" case. Shared by the rating guide and the
+// review form, which names the level you picked as you tap.
+export const STAR_WORDS = [
+  '',
+  ...[...SCALE_LABELS].sort((a, b) => a[0] - b[0]).map(([, label]) => label),
+];
+
 // Build a category's rating scale from five descriptions ordered 5★ → 1★.
 const buildScale = (descs) => {
   if (descs.length !== SCALE_LABELS.length)

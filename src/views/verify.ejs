@@ -17,14 +17,20 @@
   </div>
   <div class="field">
     <span class="flab">Overall, how's living here?</span>
-    <div class="bigstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= data.overall ? ' sel' : '' %>">★</span><% } %></div>
+    <div class="overallrate">
+      <div class="bigstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= data.overall ? ' sel' : '' %>">★</span><% } %></div>
+      <span class="starword"><%= STAR_WORDS[data.overall] || '' %></span>
+    </div>
   </div>
   <div class="field">
-    <span class="flab">Rate the specifics</span>
-    <% CATEGORIES.forEach(function(c){ %>
+    <span class="flab">Rate the specifics <span class="opt">· optional</span></span>
+    <% CATEGORIES.forEach(function(c){ const v = data.cats[c.key] || 0; %>
       <div class="catrate">
-        <div class="crleft"><span class="crname"><%= c.label %></span></div>
-        <span class="crstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= (data.cats[c.key] || 0) ? ' sel' : '' %>">★</span><% } %></span>
+        <div class="crhead">
+          <span class="crname"><%= c.label %></span>
+          <span class="starword"><%= STAR_WORDS[v] || '' %></span>
+        </div>
+        <span class="crstars"><% for (var i=1;i<=5;i++){ %><span class="star<%= i <= v ? ' sel' : '' %>">★</span><% } %></span>
       </div>
     <% }) %>
   </div>
