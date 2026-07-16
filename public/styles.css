@@ -83,31 +83,67 @@ a { color: inherit; text-decoration: none; }
 .stars { display: inline-flex; gap: 1.5px; font-size: 15px; line-height: 1; color: #dcd9d3; letter-spacing: .5px; }
 .star.on { color: var(--amber); }
 
-/* Leaderboard rows */
+/* Leaderboard rows — square photo on the left, scores on the right. */
 .lbrow {
-  position: relative; overflow: hidden; background: #fff; border-radius: 20px;
-  box-shadow: 0 5px 16px rgba(50,45,40,.06); margin-bottom: 14px;
-  min-height: 182px; display: flex; flex-direction: column; justify-content: flex-end;
+  position: relative; overflow: hidden; background: #fff; border-radius: 18px;
+  box-shadow: 0 5px 16px rgba(50,45,40,.06); margin-bottom: 12px;
+  display: flex; align-items: stretch; gap: 12px; padding: 12px;
 }
-.tilephoto { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; background-color: #e7e3dc; }
-.tilefade {
-  position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 24%, rgba(0,0,0,.30) 50%, rgba(0,0,0,.66) 72%, rgba(0,0,0,.82) 88%);
+.lbthumb {
+  position: relative; flex: 0 0 96px; aspect-ratio: 1; align-self: center;
+  border-radius: 13px; background-size: cover; background-position: center;
+  background-color: #e7e3dc;
 }
-.tilebody { position: relative; z-index: 1; }
-.lbtop { display: flex; align-items: baseline; gap: 9px; padding: 0 18px 10px; }
-.tcname { font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 17px; line-height: 1.15; color: #fff; text-shadow: 0 1px 5px rgba(0,0,0,.4); }
-.ovr { display: flex; align-items: center; gap: 8px; margin-left: auto; flex: 0 0 auto; }
-.ovrnum { font-family: 'Fredoka', sans-serif; font-size: 18px; font-weight: 600; color: #fff; line-height: 1; text-shadow: 0 1px 5px rgba(0,0,0,.4); }
+.lbbody { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+.lbtop { display: flex; align-items: baseline; gap: 9px; }
+.tcname {
+  font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 16px;
+  line-height: 1.15; color: var(--ink);
+}
+.ovr { display: flex; align-items: center; gap: 7px; margin-left: auto; flex: 0 0 auto; }
+.ovrnum { font-family: 'Fredoka', sans-serif; font-size: 18px; font-weight: 600; color: var(--ink); line-height: 1; }
 .ovr .stars { font-size: 13px; }
-.subsbar { background: #fff; padding: 9px 16px 11px; border-top: 1px solid rgba(120,110,95,.12); }
-.subs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+.subs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .sub { text-align: center; }
 .sublab { font-size: 8.5px; font-weight: 700; letter-spacing: .05em; color: #a8a39b; text-transform: uppercase; }
-.subv { font-family: 'Fredoka', sans-serif; font-size: 14px; font-weight: 600; color: #46423d; margin-top: 3px; }
+.subv {
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+  font-family: 'Fredoka', sans-serif; font-size: 14px; font-weight: 600;
+  color: #46423d; margin-top: 3px;
+}
 .sub.on .sublab, .sub.on .subv { color: var(--acc); }
+
+/* Podium badges — over the photo for the current sort, inline on category cells. */
+.rankbadge {
+  position: absolute; top: -5px; left: -5px; z-index: 1;
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Fredoka', sans-serif; font-size: 13px; font-weight: 600;
+  color: #fff; border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(40,38,35,.22);
+}
+.subrank {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 12px; height: 12px; border-radius: 50%; flex: 0 0 auto;
+  font-size: 8px; font-weight: 700; line-height: 1; color: #fff;
+}
+.rankbadge.r1, .subrank.r1 { background: var(--a); }
+.rankbadge.r2, .subrank.r2 { background: #a8a39b; }
+.rankbadge.r3, .subrank.r3 { background: #b98155; }
+
+/* Narrow phones: the five score columns are what run out of room first, so give
+   them back the width the thumbnail and gaps were taking. */
+@media (max-width: 400px) {
+  .lbrow { gap: 9px; padding: 9px; }
+  .lbthumb { flex-basis: 72px; border-radius: 11px; }
+  .tcname { font-size: 15px; }
+  .subs { gap: 3px; }
+  .sublab { font-size: 8px; letter-spacing: .03em; }
+  .subv { font-size: 13px; gap: 2px; }
+}
+
 /* Suppressed (too-few-reviews) rows render as flat name-only cards. */
-.lbrow.flat { min-height: auto; padding: 16px 18px; background: #fff; }
+.lbrow.flat { display: block; padding: 16px 18px; background: #fff; }
 .lbrow.flat .tcnamed { font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 16px; color: var(--ink); }
 .norating { font-size: 11.5px; color: var(--mut); margin-top: 3px; }
 
@@ -127,7 +163,11 @@ a { color: inherit; text-decoration: none; }
 
 /* Town page */
 .hero { position: relative; height: 268px; overflow: hidden; }
-.hero .tilephoto { position: absolute; inset: 0; }
+.tilephoto { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; background-color: #e7e3dc; }
+.tilefade {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 24%, rgba(0,0,0,.30) 50%, rgba(0,0,0,.66) 72%, rgba(0,0,0,.82) 88%);
+}
 .hero .iconbtn.back { position: absolute; left: 14px; top: 14px; z-index: 3; background: rgba(255,255,255,.9); }
 .heroquote { position: absolute; left: 18px; right: 18px; bottom: 26px; z-index: 2; color: #fff; }
 .heroquote .q { font-size: 14px; font-weight: 500; line-height: 1.45; text-shadow: 0 1px 6px rgba(0,0,0,.5); overflow-wrap: anywhere; }

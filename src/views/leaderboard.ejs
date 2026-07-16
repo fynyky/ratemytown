@@ -14,6 +14,10 @@
 <%
   // Overall, then one chip per category — derived from the shared category list.
   const sortChips = [['overall', 'Overall'], ...CATEGORIES.map((c) => [c.key, c.label])];
+  // Podium badges: over the photo for the top 3 by the current sort, and on each
+  // category cell for the top 3 in that category.
+  const topBySort = h.topRanks(leaderboard, sort);
+  const topByCat = Object.fromEntries(CATEGORIES.map((c) => [c.key, h.topRanks(leaderboard, c.key)]));
 %>
 <div class="chiprow">
   <% sortChips.forEach(function(c){ %>
@@ -30,10 +34,14 @@
         <div class="norating">Not enough verified reviews yet · <%= r.review_count %> so far</div>
       </a>
     <% } else { %>
+      <% const rank = topBySort.get(r.id) %>
       <a class="lbrow" href="/town/<%= r.slug %>">
-        <div class="tilephoto" style="background-image:url(/towns/<%= r.slug %>.jpg)"></div>
-        <div class="tilefade"></div>
-        <div class="tilebody">
+        <div class="lbthumb" style="background-image:url(/towns/<%= r.slug %>.jpg)">
+          <% if (rank) { %>
+            <div class="rankbadge r<%= rank %>" title="#<%= rank %>"><%= rank %></div>
+          <% } %>
+        </div>
+        <div class="lbbody">
           <div class="lbtop">
             <div class="tcname"><%= r.name %></div>
             <div class="ovr">
@@ -41,15 +49,16 @@
               <%- include('partials/stars', { score: r.overall, size: 13 }) %>
             </div>
           </div>
-          <div class="subsbar">
-            <div class="subs">
-              <% CATEGORIES.forEach(function(c){ %>
-                <div class="sub<%= sort === c.key ? ' on' : '' %>">
-                  <div class="sublab"><%= c.short %></div>
-                  <div class="subv"><%= h.fmtScore(r.scores[c.key]) %></div>
+          <div class="subs">
+            <% CATEGORIES.forEach(function(c){
+                 const cr = topByCat[c.key].get(r.id); %>
+              <div class="sub<%= sort === c.key ? ' on' : '' %>">
+                <div class="sublab"><%= c.short %></div>
+                <div class="subv">
+                  <%= h.fmtScore(r.scores[c.key]) %><% if (cr) { %><span class="subrank r<%= cr %>" title="#<%= cr %> for <%= c.label %>"><%= cr %></span><% } %>
                 </div>
-              <% }) %>
-            </div>
+              </div>
+            <% }) %>
           </div>
         </div>
       </a>

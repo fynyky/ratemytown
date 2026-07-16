@@ -33,6 +33,24 @@ export function reviewTags(review, categories) {
     .map((c) => c.label);
 }
 
+// Rank the leaderboard rows by `key` ('overall' or a category key) and return a
+// Map of town council id -> rank for the top `limit` only. Rows without a score
+// (suppressed, or never rated) are excluded so they cannot occupy a podium slot.
+// Ties share a rank, competition-style: 4.5, 4.5, 4.2 -> 1, 1, 3.
+export function topRanks(rows, key, limit = 3) {
+  const scoreOf = (r) => (key === 'overall' ? r.overall : r.scores[key]);
+  const ranked = rows
+    .filter((r) => !r.suppressed && scoreOf(r) != null)
+    .sort((a, b) => scoreOf(b) - scoreOf(a));
+  const out = new Map();
+  ranked.forEach((r, i) => {
+    const prev = ranked[i - 1];
+    const rank = prev && scoreOf(prev) === scoreOf(r) ? out.get(prev.id) : i + 1;
+    if (rank <= limit) out.set(r.id, rank);
+  });
+  return out;
+}
+
 // Thousands separator.
 export function fmtCount(n) {
   return Number(n).toLocaleString('en-US');
