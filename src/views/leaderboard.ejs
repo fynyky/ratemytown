@@ -14,8 +14,10 @@
 <%
   // Overall, then one chip per category — derived from the shared category list.
   const sortChips = [['overall', 'Overall'], ...CATEGORIES.map((c) => [c.key, c.label])];
-  // Podium badges over the photo for the top 3 by the current sort.
+  // Podium badges over the photo for the top 3 by the current sort. The #1
+  // badge carries a plaque naming what the prize is for.
   const topBySort = h.topRanks(leaderboard, sort);
+  const sortShort = sort === 'overall' ? 'Overall' : CATEGORIES.find((c) => c.key === sort).short;
 %>
 <div class="chiprow">
   <% sortChips.forEach(function(c){ %>
@@ -39,7 +41,7 @@
       <a class="lbrow" href="/town/<%= r.slug %>">
         <div class="lbthumb" style="background-image:url(/towns/<%= r.slug %>.jpg)">
           <% if (rank) { %>
-            <%- include('partials/rankbadge', { rank: rank }) %>
+            <%- include('partials/rankbadge', { rank: rank, label: rank === 1 ? sortShort : null }) %>
           <% } %>
         </div>
         <div class="lbbody">
