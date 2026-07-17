@@ -1,7 +1,10 @@
-// Seeds 19 town councils and a spread of verified resident reviews.
+// Seeds 19 town councils and a spread of verified resident reviews, some with
+// generated placeholder photos in the blobstore.
 // Deterministic (fixed PRNG seed) so re-seeding gives the same data.
 import { pool } from './pool.js';
 import { hashNric } from '../identity.js';
+import { ensureBucket, putImage, clearPrefix } from '../services/storage.js';
+import { makeSeedPhoto } from './seedphotos.js';
 
 // --- deterministic PRNG (mulberry32) ---------------------------------------
 function mulberry32(seed) {
@@ -95,6 +98,16 @@ function makeReviews(targetOverall, count, biases) {
 }
 
 async function main() {
+  // Photos need the blobstore; if it isn't reachable, seed the rest anyway.
+  let photosEnabled = true;
+  try {
+    await ensureBucket();
+    await clearPrefix('reviews/');
+  } catch (err) {
+    photosEnabled = false;
+    console.warn(`⚠ Blobstore unreachable (${err.message}) — seeding without photos`);
+  }
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -129,6 +142,7 @@ async function main() {
       };
       const count = 12 + Math.floor(rand() * 34); // 12–45 reviews
       const reviews = makeReviews(target, count, biases);
+      let photoCount = 0;
 
       for (const r of reviews) {
         residentSeq++;
@@ -140,12 +154,13 @@ async function main() {
         const residentId = resRes.rows[0].id;
         // Stagger created_at over the past ~120 days.
         const daysAgo = Math.floor(rand() * 120);
-        await client.query(
+        const revRes = await client.query(
           `INSERT INTO reviews
              (town_council_id, resident_id, overall, service, cleanliness,
               maintenance, pest_control, environment, good_text, bad_text,
               created_at, updated_at)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now() - ($11 || ' days')::interval, now() - ($11 || ' days')::interval)`,
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now() - ($11 || ' days')::interval, now() - ($11 || ' days')::interval)
+           RETURNING id`,
           [
             tcId,
             residentId,
@@ -160,8 +175,21 @@ async function main() {
             daysAgo,
           ]
         );
+
+        // Roughly a third of reviews come with photo evidence (1–2 shots).
+        const nPhotos = rand() < 0.32 ? (rand() < 0.3 ? 2 : 1) : 0;
+        if (photosEnabled && nPhotos) {
+          for (let p = 0; p < nPhotos; p++) {
+            const key = await putImage(makeSeedPhoto(rand), 'image/png');
+            await client.query(
+              `INSERT INTO review_photos (review_id, object_key) VALUES ($1,$2)`,
+              [revRes.rows[0].id, key]
+            );
+            photoCount++;
+          }
+        }
       }
-      console.log(`✓ ${name}: ${count} reviews`);
+      console.log(`✓ ${name}: ${count} reviews, ${photoCount} photos`);
     }
 
     await client.query('COMMIT');

@@ -50,6 +50,21 @@ export async function putImage(buffer, mime) {
   return key;
 }
 
+// Remove every object under a prefix. Used by the seeder so re-seeding doesn't
+// strand orphaned photo objects from the previous run in the bucket.
+export function clearPrefix(prefix) {
+  return new Promise((resolve, reject) => {
+    const keys = [];
+    const stream = minio.listObjectsV2(BUCKET, prefix, true);
+    stream.on('data', (obj) => keys.push(obj.name));
+    stream.on('error', reject);
+    stream.on('end', () => {
+      if (!keys.length) return resolve(0);
+      minio.removeObjects(BUCKET, keys).then(() => resolve(keys.length), reject);
+    });
+  });
+}
+
 export async function statObject(key) {
   return minio.statObject(BUCKET, key);
 }
