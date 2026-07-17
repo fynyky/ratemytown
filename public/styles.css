@@ -143,6 +143,14 @@ a { color: inherit; text-decoration: none; }
   display: flex; flex-direction: column;
 }
 .rankbadges .rankbadge + .rankbadge { margin-top: -18px; }
+/* Where the stack overlaps, the top award sits over the ones beneath it
+   (DOM paint order would do the opposite). Six slots covers every award. */
+.rankbadges .rankbadge:nth-child(1) { z-index: 6; }
+.rankbadges .rankbadge:nth-child(2) { z-index: 5; }
+.rankbadges .rankbadge:nth-child(3) { z-index: 4; }
+.rankbadges .rankbadge:nth-child(4) { z-index: 3; }
+.rankbadges .rankbadge:nth-child(5) { z-index: 2; }
+.rankbadges .rankbadge:nth-child(6) { z-index: 1; }
 .rankbadge {
   width: 36px; height: 33px;
   filter: drop-shadow(0 1px 3px rgba(51,41,31,.45));
@@ -200,16 +208,22 @@ a { color: inherit; text-decoration: none; }
 /* Town page */
 .hero { position: relative; height: 190px; overflow: hidden; }
 .tilephoto { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; background-color: #efe8dc; }
-.hero .iconbtn.back { position: absolute; left: 14px; top: 14px; z-index: 3; background: rgba(255,255,255,.85); }
+/* Worded rather than an arrow, so it can't be mistaken for slideshow paging. */
+.hero .backpill {
+  position: absolute; left: 14px; top: 14px; z-index: 3;
+  background: rgba(255,255,255,.85); border-radius: 99px;
+  padding: 6px 14px; font-size: 13px; font-weight: 700; color: var(--ink);
+}
+.hero .backpill:hover { background: #fff; }
 /* Hero slideshow — cover photo first, then each review photo with its quote.
    Slides crossfade in place; `pointer-events` keeps hidden slides from
    sitting invisibly over the arrows. Without JS only the cover shows. */
 .heroslide { position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none; }
 .heroslide.on { opacity: 1; pointer-events: auto; }
-/* Review photos keep their own aspect ratio on a black backdrop; only the
-   town's cover photo fills the frame edge to edge. */
+/* Review photos keep their own aspect ratio, centred once (not tiled) on a
+   black backdrop; only the town's cover photo fills the frame edge to edge. */
 .heroslide.photo { background: #000; }
-.heroslide.photo .tilephoto { background-size: contain; background-color: #000; }
+.heroslide.photo .tilephoto { background-size: contain; background-repeat: no-repeat; background-color: #000; }
 /* Arrows: dark glass discs at the vertical centre — deliberately unlike the
    white back button in the corner. Shared with the lightbox. */
 .heroarrow {
@@ -221,6 +235,9 @@ a { color: inherit; text-decoration: none; }
 .heroarrow:hover { background: rgba(51,41,31,.72); }
 .heroarrow.prev { left: 10px; }
 .heroarrow.next { right: 10px; }
+/* app.js hides the back arrow on the first slide; display:flex above would
+   otherwise defeat the hidden attribute. */
+.heroarrow[hidden] { display: none; }
 /* A resident's own words, on a light card over the photo. */
 .heroquote {
   position: absolute; bottom: 14px; z-index: 2;
@@ -252,6 +269,9 @@ a { color: inherit; text-decoration: none; }
 .lightbox .heroarrow { width: 38px; height: 38px; font-size: 21px; }
 .lightbox .heroarrow.prev { left: 12px; }
 .lightbox .heroarrow.next { right: 12px; }
+/* The town's podium awards, worn in a row under the headline score. */
+.townawards { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+
 .tcnamed { font-family: 'Fredoka', sans-serif; font-weight: 600; letter-spacing: 0; line-height: 1.15; color: var(--ink); }
 .parea { font-size: 12.5px; color: var(--mut); font-weight: 700; margin-bottom: 2px; }
 .scorebig { font-family: 'Fredoka', sans-serif; font-size: 24px; font-weight: 600; }

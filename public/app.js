@@ -57,17 +57,21 @@
   var boxImg = box && box.querySelector('[data-lightbox-img]');
 
   var idx = 0;
+  var prevBtns = document.querySelectorAll('[data-hero-prev]');
   function show(n) {
     idx = (n + slides.length) % slides.length;
     slides.forEach(function (s, i) { s.classList.toggle('on', i === idx); });
+    // No "back" from the first slide — forward still wraps around.
+    prevBtns.forEach(function (b) { b.hidden = idx === 0; });
     if (box && !box.hidden) boxImg.src = slides[idx].dataset.img;
   }
-  document.querySelectorAll('[data-hero-prev]').forEach(function (b) {
-    b.addEventListener('click', function () { show(idx - 1); });
+  prevBtns.forEach(function (b) {
+    b.addEventListener('click', function () { if (idx > 0) show(idx - 1); });
   });
   document.querySelectorAll('[data-hero-next]').forEach(function (b) {
     b.addEventListener('click', function () { show(idx + 1); });
   });
+  show(0);
 
   if (!box) return;
   function openBox() {
@@ -86,7 +90,7 @@
   document.addEventListener('keydown', function (e) {
     if (box.hidden) return;
     if (e.key === 'Escape') closeBox();
-    if (e.key === 'ArrowLeft') show(idx - 1);
+    if (e.key === 'ArrowLeft' && idx > 0) show(idx - 1);
     if (e.key === 'ArrowRight') show(idx + 1);
   });
 })();

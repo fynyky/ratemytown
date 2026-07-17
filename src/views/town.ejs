@@ -28,7 +28,7 @@
         <% } %>
       </div>
     <% }) %>
-    <a class="iconbtn back" href="/" aria-label="Back">‹</a>
+    <a class="backpill" href="/">Back</a>
     <% if (slides.length > 1) { %>
       <button type="button" class="heroarrow prev" data-hero-prev aria-label="Previous photo">‹</button>
       <button type="button" class="heroarrow next" data-hero-next aria-label="Next photo">›</button>
@@ -53,6 +53,19 @@
             <% if (overallRank) { %>#<%= overallRank %> of <%= totalTcs %> · <% } %><%= h.fmtCount(tc.review_count) %> reviews
           </span>
         </div>
+        <%# Podium awards, from the same rank map as the catbar chips below so
+            the two can never disagree — including the "no score, no rank"
+            guard. Same badges as the leaderboard. %>
+        <% const awards = [['overall', 'Overall', tc.overall], ...CATEGORIES.map((c) => [c.key, c.short, tc.scores[c.key]])]
+             .map(([key, label, score]) => ({ label, rank: score == null ? null : ranks[key][tc.id] }))
+             .filter((a) => a.rank && a.rank <= 3) %>
+        <% if (awards.length) { %>
+          <div class="townawards">
+            <% awards.forEach(function(a){ %>
+              <%- include('partials/rankbadge', { rank: a.rank, label: a.label }) %>
+            <% }) %>
+          </div>
+        <% } %>
       <% } %>
     </div>
 
