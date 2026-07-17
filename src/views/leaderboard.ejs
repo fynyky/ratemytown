@@ -39,7 +39,7 @@
       <a class="lbrow" href="/town/<%= r.slug %>">
         <div class="lbthumb" style="background-image:url(/towns/<%= r.slug %>.jpg)">
           <% if (rank) { %>
-            <div class="rankbadge r<%= rank %>" title="#<%= rank %>"><%= rank %></div>
+            <%- include('partials/rankbadge', { rank: rank }) %>
           <% } %>
         </div>
         <div class="lbbody">

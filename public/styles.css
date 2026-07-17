@@ -133,35 +133,30 @@ a { color: inherit; text-decoration: none; }
 .sub.on .subv { color: var(--acc); }
 
 /* Podium badges over the photo for the top 3 by the current sort.
-   An award medal: a disc with two ribbon tails tucked behind it.
-   `drop-shadow` (not `box-shadow`) so the shadow follows the whole
-   composite shape, tails included. */
+   A laurel award wreath (partials/rankbadge.ejs): gold, silver or bronze
+   leaves around a medal disc carrying the rank. `drop-shadow` (not
+   `box-shadow`) so the shadow follows every leaf, not the bounding box. */
 .rankbadge {
-  position: absolute; bottom: 7px; left: 9px; z-index: 1;
-  width: 24px; height: 24px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Fredoka', sans-serif; font-size: 12px; font-weight: 600;
-  color: #fff; border: 2px solid #fff; background: var(--medal);
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.4);
-  filter: drop-shadow(0 1px 3px rgba(51,41,31,.3));
+  position: absolute; bottom: 5px; left: 6px; z-index: 1;
+  width: 36px; height: 33px;
+  filter: drop-shadow(0 1px 3px rgba(51,41,31,.45));
 }
-.rankbadge::before, .rankbadge::after {
-  content: ""; position: absolute; top: 19px; width: 7px; height: 13px;
-  background: var(--ribbon);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+.rankbadge .disc { fill: var(--medal); stroke: #fff; stroke-width: 2; }
+.rankbadge .num {
+  font-family: 'Fredoka', sans-serif; font-size: 13.5px; font-weight: 600;
+  fill: #fff;
 }
-.rankbadge::before { left: 2px; transform: rotate(-12deg); }
-.rankbadge::after { right: 2px; transform: rotate(12deg); }
-/* Gold / silver / bronze, with a matching darker ribbon. */
-.rankbadge.r1 { --medal: var(--amber); --ribbon: #b06e1f; }
-.rankbadge.r2 { --medal: var(--mut2); --ribbon: #7e7468; }
-.rankbadge.r3 { --medal: #c08552; --ribbon: #8f5e33; }
+/* Gold / silver / bronze, with leaves a shade deeper than the medal. */
+.rankbadge.r1 { --medal: var(--amber); --leaf: #cd7d26; }
+.rankbadge.r2 { --medal: var(--mut2); --leaf: #8d8172; }
+.rankbadge.r3 { --medal: #c08552; --leaf: #a06a3c; }
 
 /* Narrow phones: the five score columns are what run out of room first, so give
    them back the width the thumbnail and gaps were taking. */
 @media (max-width: 400px) {
   .lbrow { gap: 9px; }
   .lbthumb { flex-basis: 68px; }
+  .rankbadge { width: 31px; height: 28px; }
   .lbbody { padding: 12px 12px 12px 0; }
   .tcname { font-size: 15px; }
   .subs { gap: 3px; }
