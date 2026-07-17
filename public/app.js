@@ -43,6 +43,26 @@
   row.scrollLeft = active.offsetLeft - (row.clientWidth - active.offsetWidth) / 2;
 })();
 
+// Town-page hero slideshow: the cover photo, then each review photo with its
+// review's quote. The arrows loop around; with a single slide (or no JS) the
+// hero stays a static cover photo.
+(function () {
+  var hero = document.querySelector('[data-hero]');
+  if (!hero) return;
+  var slides = Array.prototype.slice.call(hero.querySelectorAll('.heroslide'));
+  var prev = hero.querySelector('[data-hero-prev]');
+  var next = hero.querySelector('[data-hero-next]');
+  if (slides.length < 2 || !prev || !next) return;
+
+  var idx = 0;
+  function show(n) {
+    idx = (n + slides.length) % slides.length;
+    slides.forEach(function (s, i) { s.classList.toggle('on', i === idx); });
+  }
+  prev.addEventListener('click', function () { show(idx - 1); });
+  next.addEventListener('click', function () { show(idx + 1); });
+})();
+
 // The 1-5 vocabulary ("Good", "Excellent"), published once per form by rate.ejs
 // from the same list the rating guide uses.
 var STAR_WORDS = (function () {
@@ -150,11 +170,13 @@ document.querySelectorAll('[data-starinput]').forEach(function (group) {
     var hasTown = !!tc.value;
     var hasOverall = !!(parseInt(overall.value, 10) || 0);
     btn.disabled = !(hasTown && hasOverall);
+    // "Verify to submit" pre-empts the Singpass verification sheet that opens
+    // on submit, so the popup doesn't come as a surprise.
     btn.textContent = !hasTown
       ? 'Choose your town to submit'
       : !hasOverall
         ? 'Rate overall to submit'
-        : 'Submit review';
+        : 'Verify to submit';
 
     // `inert` blocks focus and clicks in one go (the stars are spans, so a
     // disabled fieldset wouldn't cover them); .locked handles the dimming.

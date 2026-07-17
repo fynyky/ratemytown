@@ -130,14 +130,20 @@ a { color: inherit; text-decoration: none; }
 .sub.on .sublab { color: var(--accd); }
 .sub.on .subv { color: var(--acc); }
 
-/* Podium badges over the photo for the top 3 by the current sort.
-   A solid laurel award wreath (partials/rankbadge.ejs): gold, silver or
-   bronze leaves around a medal disc carrying the rank; the #1 badge grows
-   a plaque naming the prize ("Overall" or the sorted category).
+/* Podium badges over the photo — one per top-3 finish, overall and per
+   category. A solid laurel award wreath (partials/rankbadge.ejs): gold,
+   silver or bronze leaves around a medal disc carrying the rank, with a
+   plaque naming the prize. A town holding several awards stacks them:
+   the negative margin overlaps the wreaths but leaves each plaque (the
+   middle band of the badge) in the clear, so every label stays readable.
    `drop-shadow` (not `box-shadow`) so the shadow follows the silhouette,
    not the bounding box. */
-.rankbadge {
+.rankbadges {
   position: absolute; bottom: 5px; left: 6px; z-index: 1;
+  display: flex; flex-direction: column;
+}
+.rankbadges .rankbadge + .rankbadge { margin-top: -18px; }
+.rankbadge {
   width: 36px; height: 33px;
   filter: drop-shadow(0 1px 3px rgba(51,41,31,.45));
 }
@@ -163,6 +169,7 @@ a { color: inherit; text-decoration: none; }
   .lbthumb { flex-basis: 68px; }
   .rankbadge { width: 31px; height: 28px; }
   .rankbadge.haslabel { width: 68px; }
+  .rankbadges .rankbadge + .rankbadge { margin-top: -15px; }
   .lbbody { padding: 12px 12px 12px 0; }
   .tcname { font-size: 15px; }
   .subs { gap: 3px; }
@@ -194,6 +201,19 @@ a { color: inherit; text-decoration: none; }
 .hero { position: relative; height: 190px; overflow: hidden; }
 .tilephoto { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; background-color: #efe8dc; }
 .hero .iconbtn.back { position: absolute; left: 14px; top: 14px; z-index: 3; background: rgba(255,255,255,.85); }
+/* Hero slideshow — cover photo first, then each review photo with its quote.
+   Slides crossfade in place; `pointer-events` keeps hidden slides from
+   sitting invisibly over the arrows. Without JS only the cover shows. */
+.heroslide { position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.heroslide.on { opacity: 1; pointer-events: auto; }
+/* Arrows sit high in the photo band, clear of the quote card at the bottom. */
+.heroarrow {
+  position: absolute; top: 33%; transform: translateY(-50%); z-index: 3;
+  border: none; cursor: pointer; padding: 0;
+  background: rgba(255,255,255,.85); font-size: 19px;
+}
+.heroarrow.prev { left: 14px; }
+.heroarrow.next { right: 14px; }
 /* A resident's own words, on a light card over the photo. */
 .heroquote {
   position: absolute; bottom: 14px; z-index: 2;
@@ -266,11 +286,6 @@ a { color: inherit; text-decoration: none; }
 .rvwbad-txt { font-size: 13px; line-height: 1.5; color: #6e6355; margin-top: 2px; overflow-wrap: anywhere; }
 .rvwtags { display: flex; gap: 5px; flex-wrap: wrap; margin: 8px 0 0; }
 .rvwtag { font-size: 11px; font-weight: 700; color: #6e6355; background: var(--chipbg); border-radius: 6px; padding: 2px 8px; overflow-wrap: anywhere; }
-.vchip {
-  display: inline-flex; align-items: center; font-size: 11px; font-weight: 700;
-  color: var(--green); background: var(--greenbg); border-radius: 99px; padding: 2px 8px;
-}
-.vchip::before { content: "✓"; margin-right: 4px; }
 .rvwphotos { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
 .rvwphoto { width: 76px; height: 76px; border-radius: 11px; object-fit: cover; flex: 0 0 76px; background: #efe8dc; }
 

@@ -1,20 +1,35 @@
 <% title = tc.name + ' — RateMyTown.sg' %>
 
 <%
-  const heroReview = reviews.find(function(r){ return r.good_text; });
+  // Hero slideshow: the town's cover photo leads, then every review photo in
+  // recency order, each carrying its own review's quote over the image.
+  const slides = [{ img: '/towns/' + tc.slug + '.jpg', quote: null }];
+  reviews.forEach(function(r){
+    (r.photos || []).forEach(function(k){
+      slides.push({ img: '/uploads/' + k, quote: r.good_text || null });
+    });
+  });
   // The rank map covers every town council, so its size is the total.
   const totalTcs = Object.keys(ranks.overall).length;
 %>
 
 <div class="scroll" style="padding:0">
-  <div class="hero">
-    <div class="tilephoto" style="background-image:url(/towns/<%= tc.slug %>.jpg)"></div>
-    <a class="iconbtn back" href="/" aria-label="Back">‹</a>
-    <% if (heroReview) { %>
-      <div class="heroquote">
-        <div class="q">“<%= heroReview.good_text %>”</div>
-        <div class="by">From a verified resident review</div>
+  <div class="hero" data-hero>
+    <% slides.forEach(function(s, i){ %>
+      <div class="heroslide<%= i === 0 ? ' on' : '' %>">
+        <div class="tilephoto" style="background-image:url(<%= s.img %>)"></div>
+        <% if (s.quote) { %>
+          <div class="heroquote">
+            <div class="q">“<%= s.quote %>”</div>
+            <div class="by">From a resident review</div>
+          </div>
+        <% } %>
       </div>
+    <% }) %>
+    <a class="iconbtn back" href="/" aria-label="Back">‹</a>
+    <% if (slides.length > 1) { %>
+      <button type="button" class="iconbtn heroarrow prev" data-hero-prev aria-label="Previous photo">‹</button>
+      <button type="button" class="iconbtn heroarrow next" data-hero-next aria-label="Next photo">›</button>
     <% } %>
   </div>
 
@@ -78,7 +93,6 @@
         <div class="rvw">
           <div class="rvwh">
             <%- include('partials/stars', { score: r.overall, size: 13 }) %>
-            <span class="vchip">Verified</span>
             <span class="rvwt"><%= h.timeAgo(r.created_at) %></span>
           </div>
           <% if (r.good_text) { %><div class="rvwb"><%= r.good_text %></div><% } %>
