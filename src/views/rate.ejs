@@ -16,6 +16,7 @@
     <% } %>
 
     <div class="field">
+      <span class="flab">First, choose your town</span>
       <div class="selectbox">
         <select name="tc" aria-label="Town council" required>
           <option value="" disabled<%= selected ? '' : ' selected' %>>Choose your town…</option>
@@ -25,7 +26,13 @@
         </select>
         <span class="chev">▾</span>
       </div>
+      <span class="townhint" data-town-hint hidden>Pick your town to unlock the rest of the form.</span>
     </div>
+
+    <%# Everything below is parked until a town is chosen: app.js dims this
+        wrapper and makes it inert. Ships unlocked so the form still works
+        without JS (the server validates the town either way). %>
+    <div class="formrest" data-form-rest>
 
     <div class="field">
       <div class="cardfield">
@@ -76,6 +83,8 @@
     <%# Enabled by default so the form still submits without JS (the server
         validates town + overall either way); app.js gates it and says why. %>
     <button type="submit" class="btnf" style="margin-top:18px" data-submit-gate>Submit review</button>
+
+    </div><%# /data-form-rest %>
   </div>
 </form>
 

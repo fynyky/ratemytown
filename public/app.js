@@ -132,6 +132,10 @@ document.querySelectorAll('[data-starinput]').forEach(function (group) {
 // the only required answers — and say which one is still missing rather than
 // failing on the server after a round trip. The button ships enabled, so the
 // form still works without JS.
+//
+// The town comes first: until one is chosen, everything below the picker is
+// parked (dimmed + inert) and the picker itself carries the emphasis, so the
+// form reads as "step 1: which town?". Ships unlocked for the same no-JS reason.
 (function () {
   var form = document.querySelector('[data-rateform]');
   if (!form) return;
@@ -139,6 +143,8 @@ document.querySelectorAll('[data-starinput]').forEach(function (group) {
   var tc = form.querySelector('select[name="tc"]');
   var overall = form.querySelector('input[name="overall"]');
   if (!btn || !tc || !overall) return;
+  var rest = form.querySelector('[data-form-rest]');
+  var hint = form.querySelector('[data-town-hint]');
 
   function sync() {
     var hasTown = !!tc.value;
@@ -149,6 +155,15 @@ document.querySelectorAll('[data-starinput]').forEach(function (group) {
       : !hasOverall
         ? 'Rate overall to submit'
         : 'Submit review';
+
+    // `inert` blocks focus and clicks in one go (the stars are spans, so a
+    // disabled fieldset wouldn't cover them); .locked handles the dimming.
+    if (rest) {
+      rest.classList.toggle('locked', !hasTown);
+      rest.inert = !hasTown;
+    }
+    if (hint) hint.hidden = hasTown;
+    form.classList.toggle('needstown', !hasTown);
   }
 
   form.addEventListener('change', sync);
