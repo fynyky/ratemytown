@@ -43,24 +43,70 @@
   row.scrollLeft = active.offsetLeft - (row.clientWidth - active.offsetWidth) / 2;
 })();
 
-// Town-page hero slideshow: the cover photo, then each review photo with its
-// review's quote. The arrows loop around; with a single slide (or no JS) the
-// hero stays a static cover photo.
+// Town-page hero slideshow + lightbox: the cover photo, then each review photo
+// with its review's quote. Arrows loop around and drive one shared index —
+// they exist in both the hero and the lightbox, so paging either keeps the two
+// in step. Clicking a slide opens the current photo full-screen; Escape, the
+// ✕, or the backdrop closes it. With a single slide (or no JS) the hero stays
+// a static cover photo.
 (function () {
   var hero = document.querySelector('[data-hero]');
   if (!hero) return;
   var slides = Array.prototype.slice.call(hero.querySelectorAll('.heroslide'));
-  var prev = hero.querySelector('[data-hero-prev]');
-  var next = hero.querySelector('[data-hero-next]');
-  if (slides.length < 2 || !prev || !next) return;
+  var box = document.querySelector('[data-lightbox]');
+  var boxImg = box && box.querySelector('[data-lightbox-img]');
 
   var idx = 0;
   function show(n) {
     idx = (n + slides.length) % slides.length;
     slides.forEach(function (s, i) { s.classList.toggle('on', i === idx); });
+    if (box && !box.hidden) boxImg.src = slides[idx].dataset.img;
   }
-  prev.addEventListener('click', function () { show(idx - 1); });
-  next.addEventListener('click', function () { show(idx + 1); });
+  document.querySelectorAll('[data-hero-prev]').forEach(function (b) {
+    b.addEventListener('click', function () { show(idx - 1); });
+  });
+  document.querySelectorAll('[data-hero-next]').forEach(function (b) {
+    b.addEventListener('click', function () { show(idx + 1); });
+  });
+
+  if (!box) return;
+  function openBox() {
+    boxImg.src = slides[idx].dataset.img;
+    box.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeBox() {
+    box.hidden = true;
+    document.body.style.overflow = '';
+  }
+  slides.forEach(function (s) { s.addEventListener('click', openBox); });
+  box.querySelectorAll('[data-lightbox-close]').forEach(function (b) {
+    b.addEventListener('click', closeBox);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (box.hidden) return;
+    if (e.key === 'Escape') closeBox();
+    if (e.key === 'ArrowLeft') show(idx - 1);
+    if (e.key === 'ArrowRight') show(idx + 1);
+  });
+})();
+
+// "Most recent ▾" on the town page is a real sort control: reorder the review
+// cards client-side by the data-* attributes each card carries. Without JS the
+// list stays in the server's most-recent order.
+(function () {
+  var sel = document.querySelector('[data-review-sort]');
+  var wrap = document.querySelector('[data-reviews]');
+  if (!sel || !wrap) return;
+  sel.addEventListener('change', function () {
+    var cards = Array.prototype.slice.call(wrap.children);
+    cards.sort(function (a, b) {
+      if (sel.value === 'high') return b.dataset.overall - a.dataset.overall || b.dataset.ts - a.dataset.ts;
+      if (sel.value === 'low') return a.dataset.overall - b.dataset.overall || b.dataset.ts - a.dataset.ts;
+      return b.dataset.ts - a.dataset.ts;
+    });
+    cards.forEach(function (c) { wrap.appendChild(c); });
+  });
 })();
 
 // The 1-5 vocabulary ("Good", "Excellent"), published once per form by rate.ejs

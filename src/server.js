@@ -222,7 +222,17 @@ app.post('/rate/submit', async (req, res, next) => {
     delete req.session.reviewDraft;
     await cacheDel(db.SORT_KEYS.map(leaderboardCacheKey)); // scores changed
 
-    res.render('success', { tc, overall: draft.overall, isNew });
+    // Recap what was posted with the same review card the town page shows,
+    // so reshape the draft into that card's row shape.
+    const review = {
+      overall: draft.overall,
+      good_text: draft.goodText,
+      bad_text: draft.badText,
+      photos: draft.photoKeys || [],
+      created_at: new Date(),
+      ...draft.cats,
+    };
+    res.render('success', { tc, review, isNew });
   } catch (err) {
     next(err);
   }
