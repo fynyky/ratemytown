@@ -53,12 +53,6 @@ a { color: inherit; text-decoration: none; }
 .wordmark { font-family: 'Fredoka', sans-serif; font-size: 18px; font-weight: 600; line-height: 1.1; }
 .wordmark .sg { color: var(--acc); }
 .appsub { font-size: 12px; color: var(--mut); margin-top: 2px; max-width: 220px; line-height: 1.3; }
-.iconbtn {
-  width: 34px; height: 34px; border-radius: 50%; background: #fff;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--ink); font-size: 15px; flex: 0 0 34px;
-}
-.iconbtn.back { font-size: 19px; }
 .aboutpill { font-size: 14px; font-weight: 700; color: var(--acc); padding: 4px; }
 .aboutpill:hover { color: var(--accd); }
 .bartitle { font-family: 'Fredoka', sans-serif; font-size: 19px; font-weight: 600; }
@@ -208,13 +202,15 @@ a { color: inherit; text-decoration: none; }
 /* Town page */
 .hero { position: relative; height: 190px; overflow: hidden; }
 .tilephoto { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; background-color: #efe8dc; }
-/* Worded rather than an arrow, so it can't be mistaken for slideshow paging. */
-.hero .backpill {
-  position: absolute; left: 14px; top: 14px; z-index: 3;
-  background: rgba(255,255,255,.85); border-radius: 99px;
+/* One worded "Back" control everywhere: floated over the town hero (where an
+   arrow could be mistaken for slideshow paging) and inline in the about/guide
+   app bars, so every page's back button matches. */
+.backpill {
+  display: inline-block; background: rgba(255,255,255,.85); border-radius: 99px;
   padding: 6px 14px; font-size: 13px; font-weight: 700; color: var(--ink);
 }
-.hero .backpill:hover { background: #fff; }
+.backpill:hover { background: #fff; }
+.hero .backpill { position: absolute; left: 14px; top: 14px; z-index: 3; }
 /* Hero slideshow — cover photo first, then each review photo with its quote.
    Slides crossfade in place; `pointer-events` keeps hidden slides from
    sitting invisibly over the arrows. Without JS only the cover shows. */
@@ -258,7 +254,15 @@ a { color: inherit; text-decoration: none; }
 }
 .lightbox[hidden] { display: none; }
 .lightbox-scrim { position: absolute; inset: 0; border: none; background: transparent; cursor: zoom-out; }
-.lightbox-img { position: relative; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; pointer-events: none; }
+.lightbox-figure { position: relative; margin: 0; display: flex; align-items: center; justify-content: center; max-width: 100%; max-height: 100%; }
+.lightbox-img { display: block; max-width: 100%; max-height: calc(100vh - 88px); object-fit: contain; border-radius: 6px; pointer-events: none; }
+/* Same quote card as the hero, but centred over the photo and capped to the
+   reading column rather than pinned to the hero's edges. */
+.lightbox-quote {
+  left: 50%; right: auto; bottom: 20px; transform: translateX(-50%);
+  width: calc(100% - 40px); max-width: var(--col); z-index: 2; margin: 0;
+}
+.lightbox-quote[hidden] { display: none; }
 .lightbox-x {
   position: absolute; top: 12px; right: 12px; width: 34px; height: 34px;
   border-radius: 50%; border: none; cursor: pointer;

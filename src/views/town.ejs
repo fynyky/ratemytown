@@ -128,7 +128,15 @@
     drives both; hidden until opened, so no-JS visitors never see it. %>
 <div class="lightbox" data-lightbox hidden>
   <button type="button" class="lightbox-scrim" data-lightbox-close aria-label="Close photo viewer"></button>
-  <img class="lightbox-img" data-lightbox-img alt="Photo of <%= tc.name %>">
+  <figure class="lightbox-figure">
+    <img class="lightbox-img" data-lightbox-img alt="Photo of <%= tc.name %>">
+    <%# Mirrors the current slide's quote (app.js); hidden on the cover photo,
+        which carries none. %>
+    <figcaption class="heroquote lightbox-quote" data-lightbox-quote hidden>
+      <div class="q" data-lightbox-quote-text></div>
+      <div class="by">From a resident review</div>
+    </figcaption>
+  </figure>
   <button type="button" class="lightbox-x" data-lightbox-close aria-label="Close photo viewer">✕</button>
   <% if (slides.length > 1) { %>
     <button type="button" class="heroarrow prev" data-hero-prev aria-label="Previous photo">‹</button>

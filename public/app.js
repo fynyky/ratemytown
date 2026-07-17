@@ -55,6 +55,19 @@
   var slides = Array.prototype.slice.call(hero.querySelectorAll('.heroslide'));
   var box = document.querySelector('[data-lightbox]');
   var boxImg = box && box.querySelector('[data-lightbox-img]');
+  var boxQuote = box && box.querySelector('[data-lightbox-quote]');
+  var boxQuoteText = box && box.querySelector('[data-lightbox-quote-text]');
+
+  // Mirror the current slide's photo and quote into the open lightbox. The
+  // cover photo has no quote, so the caption hides there.
+  function syncBox() {
+    boxImg.src = slides[idx].dataset.img;
+    if (boxQuote) {
+      var q = slides[idx].querySelector('.heroquote .q');
+      boxQuote.hidden = !q;
+      if (q) boxQuoteText.textContent = q.textContent;
+    }
+  }
 
   var idx = 0;
   var prevBtns = document.querySelectorAll('[data-hero-prev]');
@@ -63,7 +76,7 @@
     slides.forEach(function (s, i) { s.classList.toggle('on', i === idx); });
     // No "back" from the first slide — forward still wraps around.
     prevBtns.forEach(function (b) { b.hidden = idx === 0; });
-    if (box && !box.hidden) boxImg.src = slides[idx].dataset.img;
+    if (box && !box.hidden) syncBox();
   }
   prevBtns.forEach(function (b) {
     b.addEventListener('click', function () { if (idx > 0) show(idx - 1); });
@@ -75,8 +88,8 @@
 
   if (!box) return;
   function openBox() {
-    boxImg.src = slides[idx].dataset.img;
     box.hidden = false;
+    syncBox();
     document.body.style.overflow = 'hidden';
   }
   function closeBox() {
