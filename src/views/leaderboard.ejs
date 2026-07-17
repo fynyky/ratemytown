@@ -14,10 +14,12 @@
 <%
   // Overall, then one chip per category — derived from the shared category list.
   const sortChips = [['overall', 'Overall'], ...CATEGORIES.map((c) => [c.key, c.label])];
-  // Podium badges over the photo for the top 3 by the current sort. The #1
-  // badge carries a plaque naming what the prize is for.
-  const topBySort = h.topRanks(leaderboard, sort);
-  const sortShort = sort === 'overall' ? 'Overall' : CATEGORIES.find((c) => c.key === sort).short;
+  // Podium badges over the photo: every top-3 finish — overall and in each
+  // category — earns a badge with a plaque naming the prize. A town holding
+  // several awards stacks them on its photo. Rank every metric once here (one
+  // topRanks pass per key), then each row reads its own rank by id.
+  const rankMaps = { overall: h.topRanks(leaderboard, 'overall') };
+  CATEGORIES.forEach((c) => { rankMaps[c.key] = h.topRanks(leaderboard, c.key); });
 %>
 <div class="chiprow">
   <% sortChips.forEach(function(c){ %>
@@ -34,14 +36,18 @@
         <div class="norating">Not enough verified reviews yet · <%= r.review_count %> so far</div>
       </a>
     <% } else { %>
-      <% const rank = topBySort.get(r.id) %>
+      <% const rowAwards = h.awardsFor(CATEGORIES, (key) => rankMaps[key].get(r.id)) %>
       <%# The headline score is whichever metric is being ranked by, so the sort
           re-emphasizes as well as re-orders. %>
       <% const activeScore = sort === 'overall' ? r.overall : r.scores[sort] %>
       <a class="lbrow" href="/town/<%= r.slug %>">
         <div class="lbthumb" style="background-image:url(/towns/<%= r.slug %>.jpg)">
-          <% if (rank) { %>
-            <%- include('partials/rankbadge', { rank: rank, label: rank === 1 ? sortShort : null }) %>
+          <% if (rowAwards.length) { %>
+            <div class="rankbadges">
+              <% rowAwards.forEach(function(a){ %>
+                <%- include('partials/rankbadge', { rank: a.rank, label: a.label }) %>
+              <% }) %>
+            </div>
           <% } %>
         </div>
         <div class="lbbody">

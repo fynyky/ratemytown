@@ -8,12 +8,15 @@
     Honest experiences like yours help town councils see what's working and where to improve.
   </div>
 
-  <div class="postedcard">
-    <div>
-      <div class="postedtc"><%= tc.name %></div>
-      <div class="postedanon">Posted anonymously</div>
+  <%# The posted review, recapped with the exact card the town page renders. %>
+  <div class="successreview">
+    <div class="postedcard">
+      <div>
+        <div class="postedtc"><%= tc.name %></div>
+        <div class="postedanon">Posted anonymously</div>
+      </div>
     </div>
-    <%- include('partials/stars', { score: overall, size: 15 }) %>
+    <%- include('partials/review', { r: review }) %>
   </div>
 
   <div class="successbtns">

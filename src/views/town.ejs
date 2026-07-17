@@ -1,20 +1,37 @@
 <% title = tc.name + ' — RateMyTown.sg' %>
 
 <%
-  const heroReview = reviews.find(function(r){ return r.good_text; });
+  // Hero slideshow: the town's cover photo leads, then every review photo in
+  // recency order, each carrying its own review's quote over the image.
+  const slides = [{ img: '/towns/' + tc.slug + '.jpg', quote: null }];
+  reviews.forEach(function(r){
+    (r.photos || []).forEach(function(k){
+      slides.push({ img: '/uploads/' + k, quote: r.good_text || null });
+    });
+  });
   // The rank map covers every town council, so its size is the total.
   const totalTcs = Object.keys(ranks.overall).length;
 %>
 
 <div class="scroll" style="padding:0">
-  <div class="hero">
-    <div class="tilephoto" style="background-image:url(/towns/<%= tc.slug %>.jpg)"></div>
-    <a class="iconbtn back" href="/" aria-label="Back">‹</a>
-    <% if (heroReview) { %>
-      <div class="heroquote">
-        <div class="q">“<%= heroReview.good_text %>”</div>
-        <div class="by">From a verified resident review</div>
+  <%# Resident photos (every slide after the cover) keep their real aspect
+      ratio on a black backdrop; clicking any slide opens the lightbox. %>
+  <div class="hero" data-hero>
+    <% slides.forEach(function(s, i){ %>
+      <div class="heroslide<%= i === 0 ? ' on' : '' %><%= i > 0 ? ' photo' : '' %>" data-img="<%= s.img %>">
+        <div class="tilephoto" style="background-image:url(<%= s.img %>)"></div>
+        <% if (s.quote) { %>
+          <div class="heroquote">
+            <div class="q">“<%= s.quote %>”</div>
+            <div class="by">From a resident review</div>
+          </div>
+        <% } %>
       </div>
+    <% }) %>
+    <a class="backpill" href="/">Back</a>
+    <% if (slides.length > 1) { %>
+      <button type="button" class="heroarrow prev" data-hero-prev aria-label="Previous photo">‹</button>
+      <button type="button" class="heroarrow next" data-hero-next aria-label="Next photo">›</button>
     <% } %>
   </div>
 
@@ -36,6 +53,20 @@
             <% if (overallRank) { %>#<%= overallRank %> of <%= totalTcs %> · <% } %><%= h.fmtCount(tc.review_count) %> reviews
           </span>
         </div>
+        <%# Podium awards, from the same rank map as the catbar chips below so
+            the two can never disagree — including the "no score, no rank"
+            guard. Same badges as the leaderboard. %>
+        <% const awards = h.awardsFor(CATEGORIES, (key) => {
+             const score = key === 'overall' ? tc.overall : tc.scores[key];
+             return score == null ? null : ranks[key][tc.id];
+           }) %>
+        <% if (awards.length) { %>
+          <div class="townawards">
+            <% awards.forEach(function(a){ %>
+              <%- include('partials/rankbadge', { rank: a.rank, label: a.label }) %>
+            <% }) %>
+          </div>
+        <% } %>
       <% } %>
     </div>
 
@@ -66,40 +97,52 @@
     <div style="padding:8px 0 24px">
       <div style="display:flex;align-items:baseline;justify-content:space-between;padding:8px 0 10px">
         <div class="sectit" style="margin:0">Resident reviews</div>
-        <div class="sortlab">Most recent ▾</div>
+        <%# A real control (app.js reorders the cards client-side); without JS
+            it stays on the server's most-recent order. %>
+        <label class="sortlab">
+          <select class="sortsel" data-review-sort aria-label="Sort reviews">
+            <option value="recent">Most recent</option>
+            <option value="high">Highest rated</option>
+            <option value="low">Lowest rated</option>
+          </select>
+          <span aria-hidden="true">▾</span>
+        </label>
       </div>
 
       <% if (reviews.length === 0) { %>
         <div class="rvw" style="color:var(--mut)">No reviews yet. Be the first verified resident to share your experience.</div>
       <% } %>
 
-      <% reviews.forEach(function(r){
-           const tags = h.reviewTags(r, CATEGORIES); %>
-        <div class="rvw">
-          <div class="rvwh">
-            <%- include('partials/stars', { score: r.overall, size: 13 }) %>
-            <span class="vchip">Verified</span>
-            <span class="rvwt"><%= h.timeAgo(r.created_at) %></span>
-          </div>
-          <% if (r.good_text) { %><div class="rvwb"><%= r.good_text %></div><% } %>
-          <% if (r.bad_text) { %>
-            <div class="rvwbad">
-              <div class="rvwbad-lab">Could be better</div>
-              <div class="rvwbad-txt"><%= r.bad_text %></div>
-            </div>
-          <% } %>
-          <% if (r.photos && r.photos.length) { %>
-            <div class="rvwphotos"><% r.photos.forEach(function(k){ %><img class="rvwphoto" src="/uploads/<%= k %>" alt="Resident photo" loading="lazy"><% }) %></div>
-          <% } %>
-          <% if (tags.length) { %>
-            <div class="rvwtags"><% tags.forEach(function(t){ %><span class="rvwtag"><%= t %></span><% }) %></div>
-          <% } %>
-        </div>
-      <% }) %>
+      <div data-reviews>
+        <% reviews.forEach(function(r){ %>
+          <%- include('partials/review', { r: r }) %>
+        <% }) %>
+      </div>
 
       <a class="btnf" style="margin-top:16px" href="/rate?tc=<%= tc.slug %>">★&nbsp; Rate <%= tc.name %></a>
     </div>
   </div>
+</div>
+
+<%# Lightbox: clicking any hero slide opens the current photo full-screen.
+    The arrows share the hero's data attributes, so one handler in app.js
+    drives both; hidden until opened, so no-JS visitors never see it. %>
+<div class="lightbox" data-lightbox hidden>
+  <button type="button" class="lightbox-scrim" data-lightbox-close aria-label="Close photo viewer"></button>
+  <figure class="lightbox-figure">
+    <img class="lightbox-img" data-lightbox-img alt="Photo of <%= tc.name %>">
+    <%# Mirrors the current slide's quote (app.js); hidden on the cover photo,
+        which carries none. %>
+    <figcaption class="heroquote lightbox-quote" data-lightbox-quote hidden>
+      <div class="q" data-lightbox-quote-text></div>
+      <div class="by">From a resident review</div>
+    </figcaption>
+  </figure>
+  <button type="button" class="lightbox-x" data-lightbox-close aria-label="Close photo viewer">✕</button>
+  <% if (slides.length > 1) { %>
+    <button type="button" class="heroarrow prev" data-hero-prev aria-label="Previous photo">‹</button>
+    <button type="button" class="heroarrow next" data-hero-next aria-label="Next photo">›</button>
+  <% } %>
 </div>
 
 <%- include('partials/guide-sheet') %>

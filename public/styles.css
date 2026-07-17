@@ -44,6 +44,11 @@ a { color: inherit; text-decoration: none; }
   padding: 16px max(16px, calc((100% - var(--col)) / 2)) 2px; display: flex;
   align-items: center; justify-content: space-between; gap: 10px;
 }
+/* The back-button variant (partials/appbar.ejs): a three-column grid keeps the
+   title in the centre column truly centred whatever the back pill's width —
+   the empty trailing 1fr mirrors the pill's column, no spacer element needed. */
+.appbar.titled { display: grid; grid-template-columns: 1fr auto 1fr; }
+.appbar.titled .bartitle { text-align: center; }
 .brandrow { display: flex; align-items: center; gap: 10px; }
 .brandmark {
   width: 36px; height: 36px; border-radius: 11px; background: #fbeadf;
@@ -53,12 +58,6 @@ a { color: inherit; text-decoration: none; }
 .wordmark { font-family: 'Fredoka', sans-serif; font-size: 18px; font-weight: 600; line-height: 1.1; }
 .wordmark .sg { color: var(--acc); }
 .appsub { font-size: 12px; color: var(--mut); margin-top: 2px; max-width: 220px; line-height: 1.3; }
-.iconbtn {
-  width: 34px; height: 34px; border-radius: 50%; background: #fff;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--ink); font-size: 15px; flex: 0 0 34px;
-}
-.iconbtn.back { font-size: 19px; }
 .aboutpill { font-size: 14px; font-weight: 700; color: var(--acc); padding: 4px; }
 .aboutpill:hover { color: var(--accd); }
 .bartitle { font-family: 'Fredoka', sans-serif; font-size: 19px; font-weight: 600; }
@@ -130,14 +129,28 @@ a { color: inherit; text-decoration: none; }
 .sub.on .sublab { color: var(--accd); }
 .sub.on .subv { color: var(--acc); }
 
-/* Podium badges over the photo for the top 3 by the current sort.
-   A solid laurel award wreath (partials/rankbadge.ejs): gold, silver or
-   bronze leaves around a medal disc carrying the rank; the #1 badge grows
-   a plaque naming the prize ("Overall" or the sorted category).
+/* Podium badges over the photo — one per top-3 finish, overall and per
+   category. A solid laurel award wreath (partials/rankbadge.ejs): gold,
+   silver or bronze leaves around a medal disc carrying the rank, with a
+   plaque naming the prize. A town holding several awards stacks them:
+   the negative margin overlaps the wreaths but leaves each plaque (the
+   middle band of the badge) in the clear, so every label stays readable.
    `drop-shadow` (not `box-shadow`) so the shadow follows the silhouette,
    not the bounding box. */
-.rankbadge {
+.rankbadges {
   position: absolute; bottom: 5px; left: 6px; z-index: 1;
+  display: flex; flex-direction: column;
+}
+.rankbadges .rankbadge + .rankbadge { margin-top: -18px; }
+/* Where the stack overlaps, the top award sits over the ones beneath it
+   (DOM paint order would do the opposite). Six slots covers every award. */
+.rankbadges .rankbadge:nth-child(1) { z-index: 6; }
+.rankbadges .rankbadge:nth-child(2) { z-index: 5; }
+.rankbadges .rankbadge:nth-child(3) { z-index: 4; }
+.rankbadges .rankbadge:nth-child(4) { z-index: 3; }
+.rankbadges .rankbadge:nth-child(5) { z-index: 2; }
+.rankbadges .rankbadge:nth-child(6) { z-index: 1; }
+.rankbadge {
   width: 36px; height: 33px;
   filter: drop-shadow(0 1px 3px rgba(51,41,31,.45));
 }
@@ -163,6 +176,7 @@ a { color: inherit; text-decoration: none; }
   .lbthumb { flex-basis: 68px; }
   .rankbadge { width: 31px; height: 28px; }
   .rankbadge.haslabel { width: 68px; }
+  .rankbadges .rankbadge + .rankbadge { margin-top: -15px; }
   .lbbody { padding: 12px 12px 12px 0; }
   .tcname { font-size: 15px; }
   .subs { gap: 3px; }
@@ -193,7 +207,38 @@ a { color: inherit; text-decoration: none; }
 /* Town page */
 .hero { position: relative; height: 190px; overflow: hidden; }
 .tilephoto { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; background-color: #efe8dc; }
-.hero .iconbtn.back { position: absolute; left: 14px; top: 14px; z-index: 3; background: rgba(255,255,255,.85); }
+/* One worded "Back" control everywhere: floated over the town hero (where an
+   arrow could be mistaken for slideshow paging) and inline in the about/guide
+   app bars, so every page's back button matches. */
+.backpill {
+  display: inline-block; background: rgba(255,255,255,.85); border-radius: 99px;
+  padding: 6px 14px; font-size: 13px; font-weight: 700; color: var(--ink);
+}
+.backpill:hover { background: #fff; }
+.hero .backpill { position: absolute; left: 14px; top: 14px; z-index: 3; }
+/* Hero slideshow — cover photo first, then each review photo with its quote.
+   Slides crossfade in place; `pointer-events` keeps hidden slides from
+   sitting invisibly over the arrows. Without JS only the cover shows. */
+.heroslide { position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none; cursor: zoom-in; }
+.heroslide.on { opacity: 1; pointer-events: auto; }
+/* Review photos keep their own aspect ratio, centred once (not tiled) on a
+   black backdrop; only the town's cover photo fills the frame edge to edge. */
+.heroslide.photo { background: #000; }
+.heroslide.photo .tilephoto { background-size: contain; background-repeat: no-repeat; background-color: #000; }
+/* Arrows: dark glass discs at the vertical centre — deliberately unlike the
+   white back button in the corner. Shared with the lightbox. */
+.heroarrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
+  width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
+  padding: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(51,41,31,.5); color: #fff; font-size: 17px; line-height: 1;
+}
+.heroarrow:hover { background: rgba(51,41,31,.72); }
+.heroarrow.prev { left: 10px; }
+.heroarrow.next { right: 10px; }
+/* app.js hides the back arrow on the first slide; display:flex above would
+   otherwise defeat the hidden attribute. */
+.heroarrow[hidden] { display: none; }
 /* A resident's own words, on a light card over the photo. */
 .heroquote {
   position: absolute; bottom: 14px; z-index: 2;
@@ -203,6 +248,38 @@ a { color: inherit; text-decoration: none; }
 }
 .heroquote .q { font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 14.5px; line-height: 1.35; overflow-wrap: anywhere; }
 .heroquote .by { font-size: 11.5px; color: var(--mut); margin-top: 4px; }
+
+/* Lightbox — clicking a hero slide opens the photo full-screen on black.
+   The scrim button fills the backdrop so any click outside the photo (or on
+   it — the image doesn't intercept) closes; arrows reuse .heroarrow. */
+.lightbox {
+  position: fixed; inset: 0; z-index: 70; background: rgba(10,8,6,.94);
+  display: flex; align-items: center; justify-content: center; padding: 44px 48px;
+}
+.lightbox[hidden] { display: none; }
+.lightbox-scrim { position: absolute; inset: 0; border: none; background: transparent; cursor: zoom-out; }
+.lightbox-figure { position: relative; margin: 0; display: flex; align-items: center; justify-content: center; max-width: 100%; max-height: 100%; }
+.lightbox-img { display: block; max-width: 100%; max-height: calc(100vh - 88px); object-fit: contain; border-radius: 6px; pointer-events: none; }
+/* Same quote card as the hero, but centred over the photo and capped to the
+   reading column rather than pinned to the hero's edges. */
+.lightbox-quote {
+  left: 50%; right: auto; bottom: 20px; transform: translateX(-50%);
+  width: calc(100% - 40px); max-width: var(--col); z-index: 2; margin: 0;
+}
+.lightbox-quote[hidden] { display: none; }
+.lightbox-x {
+  position: absolute; top: 12px; right: 12px; width: 34px; height: 34px;
+  border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(255,255,255,.14); color: #fff; font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+}
+.lightbox-x:hover { background: rgba(255,255,255,.28); }
+.lightbox .heroarrow { width: 38px; height: 38px; font-size: 21px; }
+.lightbox .heroarrow.prev { left: 12px; }
+.lightbox .heroarrow.next { right: 12px; }
+/* The town's podium awards, worn in a row under the headline score. */
+.townawards { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+
 .tcnamed { font-family: 'Fredoka', sans-serif; font-weight: 600; letter-spacing: 0; line-height: 1.15; color: var(--ink); }
 .parea { font-size: 12.5px; color: var(--mut); font-weight: 700; margin-bottom: 2px; }
 .scorebig { font-family: 'Fredoka', sans-serif; font-size: 24px; font-weight: 600; }
@@ -251,7 +328,13 @@ a { color: inherit; text-decoration: none; }
 .summary { font-size: 14px; line-height: 1.6; color: var(--ink); overflow-wrap: anywhere; }
 .section { padding: 16px 0; }
 .sectit { font-family: 'Fredoka', sans-serif; font-size: 17px; font-weight: 600; margin: 4px 0 10px; }
-.sortlab { font-size: 13px; font-weight: 700; color: var(--acc); }
+/* Review-sort control, styled as the quiet orange label from the mock; the
+   native dropdown chrome is stripped and the ▾ supplied by the label. */
+.sortlab { display: inline-flex; align-items: baseline; gap: 3px; font-size: 13px; font-weight: 700; color: var(--acc); cursor: pointer; }
+.sortsel {
+  appearance: none; border: none; background: transparent; padding: 0;
+  font: inherit; color: inherit; cursor: pointer; outline: none;
+}
 
 /* Reviews — each on its own white card. */
 .rvw { background: #fff; border-radius: 16px; padding: 13px 15px; margin-bottom: 10px; }
@@ -266,11 +349,6 @@ a { color: inherit; text-decoration: none; }
 .rvwbad-txt { font-size: 13px; line-height: 1.5; color: #6e6355; margin-top: 2px; overflow-wrap: anywhere; }
 .rvwtags { display: flex; gap: 5px; flex-wrap: wrap; margin: 8px 0 0; }
 .rvwtag { font-size: 11px; font-weight: 700; color: #6e6355; background: var(--chipbg); border-radius: 6px; padding: 2px 8px; overflow-wrap: anywhere; }
-.vchip {
-  display: inline-flex; align-items: center; font-size: 11px; font-weight: 700;
-  color: var(--green); background: var(--greenbg); border-radius: 99px; padding: 2px 8px;
-}
-.vchip::before { content: "✓"; margin-right: 4px; }
 .rvwphotos { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
 .rvwphoto { width: 76px; height: 76px; border-radius: 11px; object-fit: cover; flex: 0 0 76px; background: #efe8dc; }
 
@@ -439,8 +517,15 @@ button.btnf:disabled {
 .nricinput { width: 100%; border: 1px solid var(--border); border-radius: 12px; padding: 13px; font-size: 14px; font-family: inherit; outline: none; margin-bottom: 6px; letter-spacing: .04em; }
 .nriclabel { font-size: 12px; font-weight: 600; color: var(--mut); margin-bottom: 8px; }
 
-/* Success */
-.success { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 28px; }
+/* Success — centred to the reading column so the cards don't sprawl on
+   desktop; the recap review card reads left-aligned like on the town page. */
+.success {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; padding: 40px 28px;
+  width: 100%; max-width: var(--col); margin: 0 auto;
+}
+.successreview { width: 100%; text-align: left; }
+.successreview .postedcard { margin-bottom: 10px; }
 .checkbadge { width: 88px; height: 88px; border-radius: 50%; background: var(--greenbg); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
 .checkdisc { width: 54px; height: 54px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 28px; font-weight: 700; }
 .successtit { font-family: 'Fredoka', sans-serif; font-size: 25px; font-weight: 600; line-height: 1.1; margin-bottom: 11px; }

@@ -43,6 +43,90 @@
   row.scrollLeft = active.offsetLeft - (row.clientWidth - active.offsetWidth) / 2;
 })();
 
+// Town-page hero slideshow + lightbox: the cover photo, then each review photo
+// with its review's quote. Arrows loop around and drive one shared index —
+// they exist in both the hero and the lightbox, so paging either keeps the two
+// in step. Clicking a slide opens the current photo full-screen; Escape, the
+// ✕, or the backdrop closes it. With a single slide (or no JS) the hero stays
+// a static cover photo.
+(function () {
+  var hero = document.querySelector('[data-hero]');
+  if (!hero) return;
+  var slides = Array.prototype.slice.call(hero.querySelectorAll('.heroslide'));
+  var box = document.querySelector('[data-lightbox]');
+  var boxImg = box && box.querySelector('[data-lightbox-img]');
+  var boxQuote = box && box.querySelector('[data-lightbox-quote]');
+  var boxQuoteText = box && box.querySelector('[data-lightbox-quote-text]');
+
+  // Mirror the current slide's photo and quote into the open lightbox. The
+  // cover photo has no quote, so the caption hides there.
+  function syncBox() {
+    boxImg.src = slides[idx].dataset.img;
+    if (boxQuote) {
+      var q = slides[idx].querySelector('.heroquote .q');
+      boxQuote.hidden = !q;
+      if (q) boxQuoteText.textContent = q.textContent;
+    }
+  }
+
+  var idx = 0;
+  var prevBtns = document.querySelectorAll('[data-hero-prev]');
+  function show(n) {
+    idx = (n + slides.length) % slides.length;
+    slides.forEach(function (s, i) { s.classList.toggle('on', i === idx); });
+    // No "back" from the first slide — forward still wraps around.
+    prevBtns.forEach(function (b) { b.hidden = idx === 0; });
+    if (box && !box.hidden) syncBox();
+  }
+  // show() hides these on the first slide, so a click can only mean idx > 0.
+  prevBtns.forEach(function (b) {
+    b.addEventListener('click', function () { show(idx - 1); });
+  });
+  document.querySelectorAll('[data-hero-next]').forEach(function (b) {
+    b.addEventListener('click', function () { show(idx + 1); });
+  });
+  show(0);
+
+  if (!box) return;
+  function openBox() {
+    box.hidden = false;
+    syncBox();
+    document.body.style.overflow = 'hidden';
+  }
+  function closeBox() {
+    box.hidden = true;
+    document.body.style.overflow = '';
+  }
+  slides.forEach(function (s) { s.addEventListener('click', openBox); });
+  box.querySelectorAll('[data-lightbox-close]').forEach(function (b) {
+    b.addEventListener('click', closeBox);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (box.hidden) return;
+    if (e.key === 'Escape') closeBox();
+    if (e.key === 'ArrowLeft' && idx > 0) show(idx - 1);
+    if (e.key === 'ArrowRight') show(idx + 1);
+  });
+})();
+
+// "Most recent ▾" on the town page is a real sort control: reorder the review
+// cards client-side by the data-* attributes each card carries. Without JS the
+// list stays in the server's most-recent order.
+(function () {
+  var sel = document.querySelector('[data-review-sort]');
+  var wrap = document.querySelector('[data-reviews]');
+  if (!sel || !wrap) return;
+  sel.addEventListener('change', function () {
+    var cards = Array.prototype.slice.call(wrap.children);
+    cards.sort(function (a, b) {
+      if (sel.value === 'high') return b.dataset.overall - a.dataset.overall || b.dataset.ts - a.dataset.ts;
+      if (sel.value === 'low') return a.dataset.overall - b.dataset.overall || b.dataset.ts - a.dataset.ts;
+      return b.dataset.ts - a.dataset.ts;
+    });
+    cards.forEach(function (c) { wrap.appendChild(c); });
+  });
+})();
+
 // The 1-5 vocabulary ("Good", "Excellent"), published once per form by rate.ejs
 // from the same list the rating guide uses.
 var STAR_WORDS = (function () {
@@ -150,11 +234,13 @@ document.querySelectorAll('[data-starinput]').forEach(function (group) {
     var hasTown = !!tc.value;
     var hasOverall = !!(parseInt(overall.value, 10) || 0);
     btn.disabled = !(hasTown && hasOverall);
+    // "Verify to submit" pre-empts the Singpass verification sheet that opens
+    // on submit, so the popup doesn't come as a surprise.
     btn.textContent = !hasTown
       ? 'Choose your town to submit'
       : !hasOverall
         ? 'Rate overall to submit'
-        : 'Submit review';
+        : 'Verify to submit';
 
     // `inert` blocks focus and clicks in one go (the stars are spans, so a
     // disabled fieldset wouldn't cover them); .locked handles the dimming.

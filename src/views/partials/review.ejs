@@ -1,0 +1,25 @@
+<%# One resident review on its own card — used on the town page (where app.js
+    re-sorts the cards by the data-* attributes) and as the "here's what you
+    posted" recap on the success page. Expects `r` shaped like a row from
+    getRecentReviews: overall, created_at, good_text, bad_text, photos, and
+    the per-category scores that reviewTags reads. %>
+<% const tags = h.reviewTags(r, CATEGORIES); %>
+<div class="rvw" data-overall="<%= r.overall %>" data-ts="<%= new Date(r.created_at).getTime() %>">
+  <div class="rvwh">
+    <%- include('stars', { score: r.overall, size: 13 }) %>
+    <span class="rvwt"><%= h.timeAgo(r.created_at) %></span>
+  </div>
+  <% if (r.good_text) { %><div class="rvwb"><%= r.good_text %></div><% } %>
+  <% if (r.bad_text) { %>
+    <div class="rvwbad">
+      <div class="rvwbad-lab">Could be better</div>
+      <div class="rvwbad-txt"><%= r.bad_text %></div>
+    </div>
+  <% } %>
+  <% if (r.photos && r.photos.length) { %>
+    <div class="rvwphotos"><% r.photos.forEach(function(k){ %><img class="rvwphoto" src="/uploads/<%= k %>" alt="Resident photo" loading="lazy"><% }) %></div>
+  <% } %>
+  <% if (tags.length) { %>
+    <div class="rvwtags"><% tags.forEach(function(t){ %><span class="rvwtag"><%= t %></span><% }) %></div>
+  <% } %>
+</div>
