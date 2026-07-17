@@ -78,8 +78,9 @@
     prevBtns.forEach(function (b) { b.hidden = idx === 0; });
     if (box && !box.hidden) syncBox();
   }
+  // show() hides these on the first slide, so a click can only mean idx > 0.
   prevBtns.forEach(function (b) {
-    b.addEventListener('click', function () { if (idx > 0) show(idx - 1); });
+    b.addEventListener('click', function () { show(idx - 1); });
   });
   document.querySelectorAll('[data-hero-next]').forEach(function (b) {
     b.addEventListener('click', function () { show(idx + 1); });

@@ -52,6 +52,18 @@ export function topRanks(rows, key, limit = 3) {
   return out;
 }
 
+// A town's podium finishes as `{ label, rank }` badges: the overall slot plus
+// one per category, each named by its short award label, kept to top-3 placings.
+// `rankOf(key)` yields the town's rank for a metric (null/undefined = unranked);
+// each caller supplies its own rank source (the leaderboard's per-key topRanks
+// maps, or the town page's precomputed category ranks). The slot list and the
+// `<= 3` cutoff live here so the two views can't drift on what earns a badge.
+export function awardsFor(categories, rankOf) {
+  return [['overall', 'Overall'], ...categories.map((c) => [c.key, c.short])]
+    .map(([key, label]) => ({ label, rank: rankOf(key) }))
+    .filter((a) => a.rank && a.rank <= 3);
+}
+
 // Thousands separator.
 export function fmtCount(n) {
   return Number(n).toLocaleString('en-US');

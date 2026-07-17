@@ -44,6 +44,11 @@ a { color: inherit; text-decoration: none; }
   padding: 16px max(16px, calc((100% - var(--col)) / 2)) 2px; display: flex;
   align-items: center; justify-content: space-between; gap: 10px;
 }
+/* The back-button variant (partials/appbar.ejs): a three-column grid keeps the
+   title in the centre column truly centred whatever the back pill's width —
+   the empty trailing 1fr mirrors the pill's column, no spacer element needed. */
+.appbar.titled { display: grid; grid-template-columns: 1fr auto 1fr; }
+.appbar.titled .bartitle { text-align: center; }
 .brandrow { display: flex; align-items: center; gap: 10px; }
 .brandmark {
   width: 36px; height: 36px; border-radius: 11px; background: #fbeadf;
@@ -214,7 +219,7 @@ a { color: inherit; text-decoration: none; }
 /* Hero slideshow — cover photo first, then each review photo with its quote.
    Slides crossfade in place; `pointer-events` keeps hidden slides from
    sitting invisibly over the arrows. Without JS only the cover shows. */
-.heroslide { position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.heroslide { position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none; cursor: zoom-in; }
 .heroslide.on { opacity: 1; pointer-events: auto; }
 /* Review photos keep their own aspect ratio, centred once (not tiled) on a
    black backdrop; only the town's cover photo fills the frame edge to edge. */
@@ -247,7 +252,6 @@ a { color: inherit; text-decoration: none; }
 /* Lightbox — clicking a hero slide opens the photo full-screen on black.
    The scrim button fills the backdrop so any click outside the photo (or on
    it — the image doesn't intercept) closes; arrows reuse .heroarrow. */
-.heroslide { cursor: zoom-in; }
 .lightbox {
   position: fixed; inset: 0; z-index: 70; background: rgba(10,8,6,.94);
   display: flex; align-items: center; justify-content: center; padding: 44px 48px;

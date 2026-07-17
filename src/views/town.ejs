@@ -56,9 +56,10 @@
         <%# Podium awards, from the same rank map as the catbar chips below so
             the two can never disagree — including the "no score, no rank"
             guard. Same badges as the leaderboard. %>
-        <% const awards = [['overall', 'Overall', tc.overall], ...CATEGORIES.map((c) => [c.key, c.short, tc.scores[c.key]])]
-             .map(([key, label, score]) => ({ label, rank: score == null ? null : ranks[key][tc.id] }))
-             .filter((a) => a.rank && a.rank <= 3) %>
+        <% const awards = h.awardsFor(CATEGORIES, (key) => {
+             const score = key === 'overall' ? tc.overall : tc.scores[key];
+             return score == null ? null : ranks[key][tc.id];
+           }) %>
         <% if (awards.length) { %>
           <div class="townawards">
             <% awards.forEach(function(a){ %>

@@ -16,9 +16,10 @@
   const sortChips = [['overall', 'Overall'], ...CATEGORIES.map((c) => [c.key, c.label])];
   // Podium badges over the photo: every top-3 finish — overall and in each
   // category — earns a badge with a plaque naming the prize. A town holding
-  // several awards stacks them on its photo.
-  const awards = [['overall', 'Overall'], ...CATEGORIES.map((c) => [c.key, c.short])]
-    .map(([key, label]) => ({ label, ranks: h.topRanks(leaderboard, key) }));
+  // several awards stacks them on its photo. Rank every metric once here (one
+  // topRanks pass per key), then each row reads its own rank by id.
+  const rankMaps = { overall: h.topRanks(leaderboard, 'overall') };
+  CATEGORIES.forEach((c) => { rankMaps[c.key] = h.topRanks(leaderboard, c.key); });
 %>
 <div class="chiprow">
   <% sortChips.forEach(function(c){ %>
@@ -35,9 +36,7 @@
         <div class="norating">Not enough verified reviews yet · <%= r.review_count %> so far</div>
       </a>
     <% } else { %>
-      <% const rowAwards = awards
-           .map((a) => ({ label: a.label, rank: a.ranks.get(r.id) }))
-           .filter((a) => a.rank) %>
+      <% const rowAwards = h.awardsFor(CATEGORIES, (key) => rankMaps[key].get(r.id)) %>
       <%# The headline score is whichever metric is being ranked by, so the sort
           re-emphasizes as well as re-orders. %>
       <% const activeScore = sort === 'overall' ? r.overall : r.scores[sort] %>

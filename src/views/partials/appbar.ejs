@@ -1,9 +1,7 @@
 <%# top bar with a back button and centred title. Params: `heading`, and an
-    optional `back` href (defaults to the leaderboard). A hidden duplicate of
-    the pill balances the real one so the title stays truly centred whatever
-    the pill's width. %>
-<div class="appbar">
+    optional `back` href (defaults to the leaderboard). The `.titled` grid keeps
+    the title centred regardless of the back pill's width (see styles.css). %>
+<div class="appbar titled">
   <a class="backpill" href="<%= typeof back === 'undefined' ? '/' : back %>">Back</a>
   <div class="bartitle"><%= heading %></div>
-  <span class="backpill" style="visibility:hidden" aria-hidden="true">Back</span>
 </div>
