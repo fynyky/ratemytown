@@ -80,7 +80,7 @@ export const CATEGORIES = [
   {
     key: 'environment',
     label: 'Estate environment',
-    short: 'Env',
+    short: 'Estate',
     desc: 'Greenery, walkways, drainage, and the overall feel of the estate.',
     scale: buildScale([
       'Greenery, walkways, and drainage are well maintained and pleasant throughout.',
