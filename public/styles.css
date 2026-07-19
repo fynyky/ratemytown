@@ -546,6 +546,12 @@ button.btnf:disabled {
 .abrd { font-size: 12.5px; line-height: 1.5; color: #6e6355; }
 .abquote { background: #fff; border-radius: 16px; padding: 18px; margin-top: 8px; font-size: 14px; line-height: 1.55; color: var(--ink); font-style: italic; }
 .abprose { font-size: 12.7px; line-height: 1.62; color: var(--ink); margin-top: 12px; }
+.abprose a { color: var(--acc); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+.abprose a:hover { color: var(--accd); }
+.absub { font-family: 'Fredoka', sans-serif; font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.2; margin: 22px 0 4px; }
+.absrc { list-style: none; margin-top: 8px; padding: 0; }
+.absrc li { font-size: 11.5px; line-height: 1.5; color: #6e6355; padding-left: 12px; position: relative; margin-top: 8px; }
+.absrc li::before { content: '—'; position: absolute; left: 0; color: var(--mut2); }
 
 /* Guide */
 .scalerow { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--line); }
